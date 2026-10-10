@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Snap Flow Studio</title>
+  <meta name="description" content="Snap Flow Studio Privacy Policy. Transparent, honest documentation of local client-side image processing, zero telemetry, minimal permissions, and zero data collection.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="../snapflow-extension/icons/icon48.png">
+</head>
+<body>
+  <div class="bg-ambient"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container nav-row">
+      <a href="index.html" class="brand-link">
+        <img src="../snapflow-extension/icons/icon48.png" alt="Snap Flow Studio" class="brand-icon">
+        <span>Snap Flow Studio</span>
+        <span class="brand-tag">Privacy Policy</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#modes">Capture Modes</a></li>
+          <li><a href="index.html#studio">Editor</a></li>
+          <li><a href="index.html#support">Support</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="index.html" class="btn btn-secondary">&larr; Back to Home</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Policy Header -->
+  <section class="policy-header">
+    <div class="container">
+      <h1 style="font-size: 2.8rem; margin-bottom: 12px;">Privacy Policy</h1>
+      <p style="font-size: 1.1rem; color: var(--accent-cyan);">
+        Effective Date: October 10, 2026 &bull; Architecture Standard: Zero Telemetry &bull; Local-First
+      </p>
+    </div>
+  </section>
+
+  <!-- Policy Content -->
+  <main class="policy-content container">
+    <div class="policy-callout">
+      <p>
+        <strong>Executive Summary:</strong> Snap Flow Studio is engineered as an offline-capable, local-first browser extension. We do not collect, transmit, sell, or analyze your screenshots, webpage content, or browsing history. All image capture, stitching, annotation, and export occurs solely within your local browser process.
+      </p>
+    </div>
+
+    <section class="policy-section">
+      <h2>1. Purpose of Snap Flow Studio</h2>
+      <p>
+        Snap Flow Studio is a Google Chrome browser extension designed to help users capture full-page webpages, visible viewports, rectangular selections, and inner scrolling panels, annotate those screenshots with vector shapes, stickers, and redaction masks, and export them into PNG, JPEG, WebP, or multi-page PDF documents.
+      </p>
+    </section>
+
+    <section class="policy-section">
+      <h2>2. What Information is Accessed and How It Is Used</h2>
+      <p>
+        When you explicitly initiate a screenshot operation (by clicking the extension icon or pressing a keyboard shortcut), Snap Flow Studio accesses:
+      </p>
+      <ul>
+        <li>
+          <strong>Visible Viewport Pixels:</strong> Via Chrome's native <code>chrome.tabs.captureVisibleTab</code> API, the browser renders an image buffer of the visible webpage section.
+        </li>
+        <li>
+          <strong>Document Geometry & Coordinates:</strong> Content scripts inspect <code>window.innerWidth</code>, <code>window.innerHeight</code>, and document scroll heights to calculate stitch offsets and coordinate alignments.
+        </li>
+        <li>
+          <strong>Source Page URL and Title:</strong> The active tab's URL and title are retrieved solely to optionally populate the metadata banner (e.g., top URL pill or timestamp header) in your edited screenshot if you choose to enable it.
+        </li>
+      </ul>
+      <p>
+        <strong>Crucial Distinction:</strong> This information is accessed solely at the moment of capture, solely on the active tab you select, and solely in local browser memory.
+      </p>
+    </section>
+
+    <section id="local" class="policy-section">
+      <h2>3. Where Screenshots are Processed and Stored</h2>
+      <p>
+        Snap Flow Studio contains <strong>no remote cloud backends</strong> and <strong>no image rendering servers</strong>:
+      </p>
+      <ul>
+        <li>
+          <strong>Local In-Memory Stitching:</strong> Slices are assembled onto an HTML5 <code>&lt;canvas&gt;</code> element directly in your browser.
+        </li>
+        <li>
+          <strong>Local IndexedDB Storage:</strong> When a capture completes, the image tiles and metadata are stored in a sandboxed, client-side IndexedDB database (<code>SnapFlowCaptureDB</code>) on your local computer so you can edit the image in the Studio tab.
+        </li>
+        <li>
+          <strong>Zero Cloud Uploads:</strong> No image data is ever transmitted across the internet to our servers or any third-party cloud service.
+        </li>
+      </ul>
+    </section>
+
+    <section class="policy-section">
+      <h2>4. Zero Telemetry, Analytics, and Tracking</h2>
+      <p>
+        We believe that privacy tools should not spy on their users. Snap Flow Studio:
+      </p>
+      <ul>
+        <li>Does <strong>NOT</strong> embed Google Analytics, Mixpanel, Amplitude, Segment, or Firebase.</li>
+        <li>Does <strong>NOT</strong> use tracking pixels or marketing beacons.</li>
+        <li>Does <strong>NOT</strong> assign unique tracking identifiers (UUIDs) across sessions.</li>
+        <li>Does <strong>NOT</strong> track which websites you visit or what content you capture.</li>
+      </ul>
+      <p>
+        This policy is validated via continuous automated unit tests in our production build pipeline, which verify that zero external tracking endpoints exist in our codebase.
+      </p>
+    </section>
+
+    <section id="permissions" class="policy-section">
+      <h2>5. Browser Permissions Justification</h2>
+      <p>
+        In accordance with Chrome Web Store Least-Privilege policies, Snap Flow Studio requests only the minimal permissions technically required for its features:
+      </p>
+      <ul>
+        <li>
+          <code>activeTab</code>: Grants temporary access to the active webpage only when you explicitly invoke the extension. It allows reading document dimensions and capturing visible viewport slices. It does not provide access to background tabs or unvisited sites.
+        </li>
+        <li>
+          <code>scripting</code>: Allows executing the local scroll and selection scripts (<code>content.js</code>) on the active tab to perform automated scrolling and region marquee dragging.
+        </li>
+        <li>
+          <code>storage</code>: Used strictly to save your local UI preferences (e.g., scroll delay, auto-hide sticky headers, default export format) in <code>chrome.storage.local</code> on your device.
+        </li>
+      </ul>
+      <p>
+        Snap Flow Studio <strong>never</strong> requests broad permissions like <code>&lt;all_urls&gt;</code>, <code>webRequest</code>, <code>history</code>, or <code>bookmarks</code>.
+      </p>
+    </section>
+
+    <section class="policy-section">
+      <h2>6. Data Retention and Uninstallation</h2>
+      <p>
+        Because all screenshot data and settings reside exclusively on your local computer:
+      </p>
+      <ul>
+        <li>You can purge editing history at any time by clicking the "Purge History" lock button in the Studio workspace.</li>
+        <li>Uninstalling the Snap Flow Studio extension from Chrome immediately and irreversibly deletes all associated IndexedDB captures, local storage settings, and extension cache from your machine.</li>
+      </ul>
+    </section>
+
+    <section class="policy-section">
+      <h2>7. Children's Privacy</h2>
+      <p>
+        Snap Flow Studio does not collect any personal information from any user, including children under the age of 13.
+      </p>
+    </section>
+
+    <section class="policy-section">
+      <h2>8. Changes to this Policy</h2>
+      <p>
+        If we update the extension to introduce new features, this policy will be updated to transparently reflect any technical changes. The core commitment—zero server uploads, local processing, and zero telemetry—will remain non-negotiable.
+      </p>
+    </section>
+
+    <section class="policy-section">
+      <h2>9. Contact and Questions</h2>
+      <p>
+        If you have questions, concerns, or technical inquiries regarding this Privacy Policy or Snap Flow Studio, please contact:
+      </p>
+      <div class="support-email-box">
+        <span>✉️</span>
+        <a href="mailto:gmuraguri75@gmail.com" class="support-email-link" style="color: var(--accent-cyan); text-decoration: underline;">gmuraguri75@gmail.com</a>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--text-dim);">
+        Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">BaziQ Hue</a>.
+      </p>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <span>&copy; 2026 Snap Flow Studio. All rights reserved. Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">BaziQ Hue</a>.</span>
+      <a href="index.html" style="color: var(--accent-cyan);">&larr; Back to Homepage</a>
+    </div>
+  </footer>
+</body>
+</html>

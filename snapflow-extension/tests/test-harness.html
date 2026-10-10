@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SnapFlow Comprehensive Adversarial Test Suite & Benchmark (Reliability 1.0)</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --border: #e2e8f0;
+      --accent: #4f46e5;
+      --accent-cyan: #0284c7;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Page B: Fixed Viewport Navigation Header */
+    .sticky-navbar {
+      position: sticky;
+      top: 0;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 2px solid var(--accent);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .sticky-navbar h2 { margin: 0; font-size: 18px; color: var(--accent); }
+
+    /* Page Q: Pinned Bottom Floating Widget */
+    .fixed-floating-widget {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      z-index: 999;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 30px 20px 80px 20px;
+    }
+
+    .test-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    .test-card h3 {
+      margin-top: 0;
+      color: #0f172a;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    /* Page C: Section-Level Sticky Headers */
+    .section-sticky-header {
+      position: sticky;
+      top: 55px; /* below sticky-navbar */
+      background: #e0e7ff;
+      color: #3730a3;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      z-index: 50;
+    }
+
+    /* Page F: Nested Vertical Scroll Box */
+    .nested-scroll-box {
+      height: 220px;
+      overflow-y: scroll;
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: monospace;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+    }
+
+    /* Page G: Nested Horizontal + Vertical Table Container */
+    .wide-scroll-container {
+      width: 100%;
+      height: 240px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .wide-table {
+      width: 1800px; /* Forces horizontal overflow */
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .wide-table th, .wide-table td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+    .wide-table th {
+      background: #f1f5f9;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    /* Page D: Lazy Loaded Dynamic Image Boxes */
+    .lazy-box {
+      height: 200px;
+      background: #cbd5e1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #475569;
+      margin: 16px 0;
+      transition: background 0.3s ease;
+    }
+    .lazy-box.loaded {
+      background: linear-gradient(135deg, #4f46e5, #0284c7);
+      color: #ffffff;
+    }
+
+    /* Page E: Virtualized List Simulation */
+    .virtual-list-container {
+      height: 250px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      position: relative;
+    }
+    .virtual-item {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+    }
+
+    .badge-pass {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      background: #dcfce7;
+      color: #166534;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Page B: Pinned Navigation Bar -->
+  <header class="sticky-navbar" id="benchmark-sticky-nav">
+    <h2>SnapFlow Adversarial Test Suite 1.0</h2>
+    <span class="badge-pass">Verification Harness Active</span>
+  </header>
+
+  <!-- Page Q: Pinned Floating Widget -->
+  <div class="fixed-floating-widget" id="benchmark-floating-widget">
+    Floating Action Widget (position: fixed)
+  </div>
+
+  <div class="container">
+    
+    <!-- Page A: Standard Long Article -->
+    <div class="test-card" id="test-page-a">
+      <h3>Page A: Standard Document Structure & Remainder Geometry</h3>
+      <p>Verifies baseline document scrolling, coordinate step calculation, and precise remainder offset alignment. The document should stitch together seamlessly without white gaps, repeated lines, or missing text.</p>
+    </div>
+
+    <!-- Page C: Section Sticky Header 1 -->
+    <div class="test-card" id="test-page-c1">
+      <div class="section-sticky-header">Section Header Alpha (position: sticky)</div>
+      <p>This header is sticky inside Section Alpha. It demonstrates legitimate section-level sticky content that should not be prematurely eliminated unless it duplicates across slice boundaries.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+    </div>
+
+    <!-- Page D: Lazy Loaded Elements -->
+    <div class="test-card" id="test-page-d">
+      <h3>Page D: Lazy-Loaded Media (IntersectionObserver Hydration)</h3>
+      <p>These elements trigger only when scrolled into the viewport. SnapFlow's pre-flight hydration sweep ensures they are fully rendered before capturing slice 0:</p>
+      <div id="lazy-item-1" class="lazy-box" data-lazy="true">
+        Lazy Element #1 (Hydrates upon viewport entry)
+      </div>
+      <div id="lazy-item-2" class="lazy-box" data-lazy="true">
+        Lazy Element #2 (Hydrates upon viewport entry)
+      </div>
+    </div>
+
+    <!-- Page C: Section Sticky Header 2 -->
+    <div class="test-card" id="test-page-c2">
+      <div class="section-sticky-header">Section Header Beta (position: sticky)</div>
+      <p>Second sticky section demonstrating multiple sequential sticky headers along the vertical document scroll path.</p>
+      <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    </div>
+
+    <!-- Page F: Nested Vertical Scrollable Container -->
+    <div class="test-card" id="test-page-f">
+      <h3>Page F: Nested Scrollable Container (Chat / Code Editor)</h3>
+      <p>Target for the <strong>Scrolling Region</strong> capture mode:</p>
+      <div id="nested-code-box" class="nested-scroll-box">
+        <p>001 // SnapFlow Capture Kernel - Stream Buffer</p>
+        <p>002 const session = new CaptureSession({ mode: 'element' });</p>
+        <p>003 session.attachScheduler(new CaptureScheduler(200, 5));</p>
+        <p>004 session.on('frame', (f) => console.log('Captured frame:', f.index));</p>
+        <p>005 session.classifyStickyElements(); // Smart duplication scoring</p>
+        <p>006 session.hydrateLazyContent(); // IntersectionObserver sweep</p>
+        <p>007 session.executeSlicingPlan(); // DPR normalized slices</p>
+        <p>008 session.verifyRemainderOffset(); // Clean footer crop</p>
+        <p>009 session.renderStudioCanvas(); // Dual-canvas initialization</p>
+        <p>010 session.enableTrueDestructiveRedaction(); // Irreversible</p>
+        <p>011 session.exportSmartSplitPdf(); // Whitespace scan</p>
+        <p>012 session.cleanupDOMGuaranteed(); // Revert all mutations</p>
+        <p>013 console.log('Execution benchmark PASS');</p>
+      </div>
+    </div>
+
+    <!-- Page G: Nested Horizontal + Vertical Scrollable Table -->
+    <div class="test-card" id="test-page-g">
+      <h3>Page G: 2D Wide Scroll Table (Horizontal Overflow)</h3>
+      <p>Tests 1800px wide table inside an independent scroll container:</p>
+      <div class="wide-scroll-container" id="wide-table-container">
+        <table class="wide-table">
+          <thead>
+            <tr>
+              <th>Column 1 (ID)</th>
+              <th>Column 2 (Module)</th>
+              <th>Column 3 (DPR 1.0)</th>
+              <th>Column 4 (DPR 2.0)</th>
+              <th>Column 5 (Memory Est.)</th>
+              <th>Column 6 (Tiling Threshold)</th>
+              <th>Column 7 (Remainder Math)</th>
+              <th>Column 8 (Redaction Status)</th>
+              <th>Column 9 (PDF Slices)</th>
+              <th>Column 10 (Verification)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#101</td><td>ScrollStitcher</td><td>1920x1080</td><td>3840x2160</td><td>24.8 MB</td><td>Pass (&lt;30k)</td><td>Exact Remainder</td><td>Verified</td><td>Smart Whitespace</td><td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>#102</td><td>CaptureScheduler</td><td>Throttle 200ms</td><td>Backoff x2</td><td>N/A</td><td>N/A</td><td>Quota Managed</td><td>N/A</td><td>N/A</td><td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>#103</td><td>StudioAnnotator</td><td>Dual Canvas</td><td>Vector Layer</td><td>12.4 MB</td><td>N/A</td><td>Non-destructive</td><td>Destructive Wipe</td><td>N/A</td><td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr>
+              <td>#104</td><td>SmartPdfExporter</td><td>A4 / Letter</td><td>72 DPI pts</td><td>8.2 MB</td><td>Multi-Page</td><td>Gutter Scan</td><td>N/A</td><td>Clean Breaks</td><td><span class="badge-pass">PASS</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Page E: Simulated Virtualized List -->
+    <div class="test-card" id="test-page-e">
+      <h3>Page E: Virtualized Feed Simulation</h3>
+      <div class="virtual-list-container" id="virtual-list-container" data-virtualized="true">
+        <!-- Rendered items simulated -->
+        <div class="virtual-item">Item #1: Simulated dynamically rendered row</div>
+        <div class="virtual-item">Item #2: Simulated dynamically rendered row</div>
+        <div class="virtual-item">Item #3: Simulated dynamically rendered row</div>
+        <div class="virtual-item">Item #4: Simulated dynamically rendered row</div>
+        <div class="virtual-item">Item #5: Simulated dynamically rendered row</div>
+        <div class="virtual-item">Item #6: Simulated dynamically rendered row</div>
+      </div>
+    </div>
+
+    <!-- Document Terminal Boundary -->
+    <div class="test-card" id="test-terminal-boundary">
+      <h3>Document Terminal Boundary (Footer Remainder Test)</h3>
+      <p>This is the final terminal element of the document. The remainder slice engine should align this element exactly at the bottom of the stitched result without overlapping or duplicating content from earlier slices.</p>
+      <div style="background: #e2e8f0; padding: 24px; text-align: center; border-radius: 8px; font-weight: bold; color: #334155;">
+        &copy; 2026 SnapFlow Verification Benchmark • End of Document
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // IntersectionObserver for lazy items
+    const lazyItems = document.querySelectorAll('[data-lazy="true"]');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('loaded');
+          entry.target.textContent = 'HYDRATED: Lazy image loaded successfully!';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    lazyItems.forEach(item => observer.observe(item));
+  </script>
+</body>
+</html>

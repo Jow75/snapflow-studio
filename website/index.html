@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snap Flow Studio - Privacy-First Chrome Screenshot & Full-Page Capture</title>
+  <meta name="description" content="Capture full webpages, scrolling panels, and custom regions with seamless stitching, high-DPI accuracy, vector annotations, and 100% local client-side processing. Free, private, and zero telemetry.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="../snapflow-extension/icons/icon48.png">
+</head>
+<body>
+  <div class="bg-ambient"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container nav-row">
+      <div class="brand-group" style="display: flex; align-items: center; gap: 12px;">
+        <a href="index.html" class="brand-link">
+          <img src="../snapflow-extension/icons/icon48.png" alt="Snap Flow Studio" class="brand-icon">
+          <span>Snap Flow Studio</span>
+          <span class="brand-tag">Free &bull; Private</span>
+        </a>
+        <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" class="parent-brand-badge" title="BaziQ Hue — Official Parent Company">By BaziQ Hue</a>
+      </div>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#modes">Capture Modes</a></li>
+          <li><a href="#studio">Editor</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#support">Support</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="privacy.html" class="btn btn-secondary">Privacy Policy</a>
+        <a href="#" class="btn btn-primary cws-install-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="21.17" y1="8" x2="12" y2="8"></line><line x1="3.95" y1="6.06" x2="8.54" y2="14"></line><line x1="10.88" y1="21.94" x2="15.46" y2="14"></line></svg>
+          <span>Add to Chrome</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-badge-wrap">
+        <span style="font-size: 14px;">🔒</span>
+        <span>100% Client-Side Image Processing &bull; Zero Server Uploads</span>
+      </div>
+
+      <h1 class="hero-title">
+        Capture Any Webpage.<br>
+        <span class="gradient-text">Pixel-Perfect Stitching. Pure Privacy.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Snap Flow Studio scrolls, aligns, and stitches full documents, scrolling chat panels, and custom regions with zero visible seams. Annotate with vector shapes, true redaction, and multi-page smart-split PDF export.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="#" class="btn btn-primary btn-lg cws-install-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="21.17" y1="8" x2="12" y2="8"></line><line x1="3.95" y1="6.06" x2="8.54" y2="14"></line><line x1="10.88" y1="21.94" x2="15.46" y2="14"></line></svg>
+          <span>Install Extension — It's Free</span>
+        </a>
+        <a href="#modes" class="btn btn-secondary btn-lg">Explore Features</a>
+      </div>
+
+      <div class="hero-guarantee">
+        <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> No Account Required</span>
+        <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Zero Telemetry or Ads</span>
+        <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Works 100% Offline</span>
+      </div>
+
+      <!-- Live Mockup Visual -->
+      <div class="showcase-wrapper">
+        <div class="browser-mockup">
+          <div class="mockup-header">
+            <div class="mockup-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <div class="mockup-url-bar">
+              <span>🔒</span>
+              <span>chrome-extension://snapflow/studio/viewer.html?id=capture_live</span>
+            </div>
+          </div>
+          <div class="mockup-body">
+            <div class="studio-demo-toolbar">
+              <div class="demo-tools-list">
+                <span class="demo-tool-pill active">Select</span>
+                <span class="demo-tool-pill">Crop</span>
+                <span class="demo-tool-pill">Arrow (A)</span>
+                <span class="demo-tool-pill">Rect (R)</span>
+                <span class="demo-tool-pill">Text (T)</span>
+                <span class="demo-tool-pill">Stickers (E)</span>
+                <span class="demo-tool-pill" style="color: #ef4444;">Redact</span>
+              </div>
+              <div style="font-size: 0.8rem; color: #94a3b8; font-family: var(--font-mono);">
+                Dimensions: 1440 &times; 3840 px &bull; DPR 2.0
+              </div>
+            </div>
+
+            <div class="studio-demo-canvas">
+              <div class="demo-banner">
+                <span>🔗 https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API</span>
+                <span>📅 Capture Timestamp &bull; 2026-10-10</span>
+              </div>
+              <div class="demo-content-grid">
+                <div class="demo-card">
+                  <h4>Seamless Full-Page Composite</h4>
+                  <p style="color: #64748b; font-size: 0.92rem; margin-bottom: 12px;">
+                    Fractional subpixel compensation completely eliminates white horizontal seams between tiles.
+                  </p>
+                  <div class="demo-redaction-box">CONFIDENTIAL DATA ERASED [NOISE REDACTION]</div>
+                </div>
+                <div class="demo-card">
+                  <h4>Smart-Split Multi-Page PDF</h4>
+                  <p style="color: #64748b; font-size: 0.92rem;">
+                    Automatic horizontal whitespace scanning prevents lines of text from being sliced in half.
+                  </p>
+                </div>
+              </div>
+
+              <div class="demo-annotation-arrow">
+                🎯 Verified Zero Seams!
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 Capture Modes Section -->
+  <section id="modes" class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Engine Architecture</span>
+        <h2 class="section-title">Four Dedicated Capture Engines.<br>Zero Guesswork.</h2>
+        <p>Each mode has an independent execution path, calibrated coordinate mapping, and verified output dimensions.</p>
+      </div>
+
+      <div class="modes-grid">
+        <!-- 1. Full Page -->
+        <div class="mode-card">
+          <div class="mode-icon-box">📜</div>
+          <h3 class="mode-title">Full Page</h3>
+          <p class="mode-desc">
+            Scrolls the entire capturable document from header to footer. Subpixel DPR clamping and composite blending eliminate faint white lines and tile seams.
+          </p>
+          <span class="mode-badge">Alt + Shift + S &bull; Multi-Slice Stitcher</span>
+        </div>
+
+        <!-- 2. Visible Area -->
+        <div class="mode-card">
+          <div class="mode-icon-box">👁️</div>
+          <h3 class="mode-title">Visible Area</h3>
+          <p class="mode-desc">
+            Instantly snapshots exactly what is visible in your browser viewport. Fast, zero document scrolling, and 1-click clipboard ready.
+          </p>
+          <span class="mode-badge">Alt + Shift + V &bull; Instant Capture</span>
+        </div>
+
+        <!-- 3. Selected Area -->
+        <div class="mode-card">
+          <div class="mode-icon-box">✂️</div>
+          <h3 class="mode-title">Selected Area</h3>
+          <p class="mode-desc">
+            Draw an interactive rectangle marquee over any region of the webpage with coordinate-accurate cropping and live dimensional readouts.
+          </p>
+          <span class="mode-badge">Custom Marquee &bull; Subpixel Crop</span>
+        </div>
+
+        <!-- 4. Scrolling Region -->
+        <div class="mode-card">
+          <div class="mode-icon-box">📦</div>
+          <h3 class="mode-title">Scrolling Region</h3>
+          <p class="mode-desc">
+            Select an inner scrollable panel—such as a long chat thread, code snippet, or wide dashboard table—and capture its complete scroll extent.
+          </p>
+          <span class="mode-badge">Nested Containers &bull; Smart Detection</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Editor Deep Dive Section -->
+  <section id="studio" class="section" style="background: rgba(17, 24, 39, 0.4); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Built-in Studio</span>
+        <h2 class="section-title">A Full Screenshot Editor.<br>Right Inside Your Browser.</h2>
+        <p>No need to export to third-party image apps. Edit, annotate, censor, and style your captures immediately.</p>
+      </div>
+
+      <!-- Feature Split 1: Annotations & Layers -->
+      <div class="feature-split-row">
+        <div class="feature-info">
+          <h3>Deterministic Linear Undo & Redo</h3>
+          <p>
+            Every single action—from drawing vector arrows and rectangles to moving objects, editing text, and adding stickers—is recorded in a deterministic history stack. Undo reaches all the way back to the initial screenshot.
+          </p>
+          <ul class="feature-checklist">
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>Ctrl+Z / Cmd+Z:</strong> Reverse every editing action in exact reverse order</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>Layer Management:</strong> Bring Forward, Send Backward, Bring to Front, Send to Back</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>Crop & Padding:</strong> Interactive canvas cropping and custom border background padding</span>
+            </li>
+          </ul>
+        </div>
+        <div class="feature-visual">
+          <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+            <div style="color: var(--accent-cyan); font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">
+              ⚡ History Stack Architecture
+            </div>
+            <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.6;">
+              Snapshot checkpoints separate raster mutations from vector transforms, keeping memory usage minimal while guaranteeing 100% undo recovery on screenshots over 30,000 pixels tall.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Split 2: Privacy Redaction & Metadata -->
+      <div class="feature-split-row reverse">
+        <div class="feature-info">
+          <h3>True Redaction & Independent Metadata</h3>
+          <p>
+            Unlike tools that merely place cosmetic black rectangles over sensitive text, Snap Flow Studio permanently wipes underlying pixel data with high-entropy noise masks so original data can never be digitally recovered.
+          </p>
+          <ul class="feature-checklist">
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>Destructive Redaction:</strong> Irreversible raster pixel destruction for credit cards & passwords</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>Accurate Source URL:</strong> Preserves the exact captured webpage URL across all edits and exports</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>Independent Positions:</strong> Place URL and Date/Time independently on Top, Bottom, or None</span>
+            </li>
+          </ul>
+        </div>
+        <div class="feature-visual">
+          <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+            <div style="color: var(--accent-emerald); font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">
+              🛡️ Privacy Censorship Engine
+            </div>
+            <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.6;">
+              Gaussian Blur, Mosaic Pixelation, and Destructive Redaction operate directly on the target raster canvas. In PDF exports, redacted regions are permanently flattened—no extractable text underneath.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Split 3: Emoji Picker & Smart-Split PDF -->
+      <div class="feature-split-row">
+        <div class="feature-info">
+          <h3>Comprehensive System Emoji Picker</h3>
+          <p>
+            Express yourself with a complete Unicode emoji library organized across all 9 standard categories. Search in real time by name, browse recent stickers, and place them with full transform handles.
+          </p>
+          <ul class="feature-checklist">
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>9 Categories:</strong> Smileys, People, Animals, Food, Travel, Activities, Objects, Symbols, Flags</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>Native Glyphs:</strong> Zero external web font or image downloads for speed and privacy</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>Smart-Split PDF:</strong> Multi-page PDF generation scans whitespace gutters so text lines are never cut</span>
+            </li>
+          </ul>
+        </div>
+        <div class="feature-visual">
+          <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+            <div style="color: var(--accent-cyan); font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">
+              📄 Multi-Page PDF Exporter
+            </div>
+            <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.6;">
+              Outputs standard A4 and US Letter multi-page PDF documents locally. Horizontal whitespace scoring automatically splits long pages cleanly between paragraphs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy Principles Section -->
+  <section id="privacy" class="section">
+    <div class="container">
+      <div class="privacy-box">
+        <div style="text-align: center; max-width: 600px; margin: 0 auto;">
+          <span style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--accent-emerald); letter-spacing: 0.08em;">Privacy by Architecture</span>
+          <h2 style="font-size: 2.2rem; margin: 10px 0 16px 0;">Your Screenshots Never Leave Your Device.</h2>
+          <p style="color: #cbd5e1; font-size: 1.05rem;">
+            Snap Flow Studio does not operate cloud image-rendering servers or analytics beacons. Every capture, stitch, annotation, and export happens 100% inside your local Chrome browser session.
+          </p>
+        </div>
+
+        <div class="privacy-grid">
+          <div class="privacy-item">
+            <div class="privacy-item-icon">🚫</div>
+            <div class="privacy-item-text">
+              <h4>Zero Remote Telemetry</h4>
+              <p>No Google Analytics, no tracking pixels, no advertising scripts, and zero telemetry beacons.</p>
+            </div>
+          </div>
+          <div class="privacy-item">
+            <div class="privacy-item-icon">💻</div>
+            <div class="privacy-item-text">
+              <h4>Local-First Storage</h4>
+              <p>Captures are saved in browser IndexedDB. They exist on your hard drive and are cleared when closed.</p>
+            </div>
+          </div>
+          <div class="privacy-item">
+            <div class="privacy-item-icon">🔑</div>
+            <div class="privacy-item-text">
+              <h4>Least-Privilege Permissions</h4>
+              <p>Uses activeTab permission only when explicitly triggered by you. No intrusive &lt;all_urls&gt; access.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 36px;">
+          <a href="privacy.html" class="btn btn-secondary">Read Full Privacy Policy &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="section" style="border-top: 1px solid var(--border-subtle);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Workflow</span>
+        <h2 class="section-title">How Snap Flow Studio Works</h2>
+        <p>Three straightforward steps to capture, edit, and share high-resolution screenshots.</p>
+      </div>
+
+      <div class="modes-grid">
+        <div class="mode-card" style="text-align: center; align-items: center;">
+          <div class="mode-icon-box" style="margin-bottom: 14px;">1</div>
+          <h3 class="mode-title">Select Mode</h3>
+          <p class="mode-desc">Click the extension icon or press Alt+Shift+S. Choose Full Page, Visible Viewport, Selected Marquee, or Scrolling Region.</p>
+        </div>
+        <div class="mode-card" style="text-align: center; align-items: center;">
+          <div class="mode-icon-box" style="margin-bottom: 14px;">2</div>
+          <h3 class="mode-title">Automatic Capture</h3>
+          <p class="mode-desc">The extension measures scrollable extents, scrolls page segments, synchronizes frames, and stitches the image without seams.</p>
+        </div>
+        <div class="mode-card" style="text-align: center; align-items: center;">
+          <div class="mode-icon-box" style="margin-bottom: 14px;">3</div>
+          <h3 class="mode-title">Annotate & Export</h3>
+          <p class="mode-desc">Add arrows, boxes, text, stickers, and redaction in the Studio. Export to PNG, JPEG, WebP, smart-split PDF, or 1-click clipboard.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="section" style="background: rgba(17, 24, 39, 0.4); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Frequently Asked Questions</span>
+        <h2 class="section-title">Clear Answers. Verified Facts.</h2>
+      </div>
+
+      <div class="faq-grid">
+        <div class="faq-card">
+          <div class="faq-q">Is Snap Flow Studio free?</div>
+          <div class="faq-a">Yes. Snap Flow Studio is completely free. There are no paywalls, hidden watermark locks, or subscription requirements.</div>
+        </div>
+        <div class="faq-card">
+          <div class="faq-q">Where are screenshots stored and processed?</div>
+          <div class="faq-a">Screenshots are processed entirely in memory and cached in local browser IndexedDB storage on your computer. They are never sent to any remote server or third-party cloud.</div>
+        </div>
+        <div class="faq-card">
+          <div class="faq-q">Does Snap Flow Studio track my browsing history?</div>
+          <div class="faq-a">No. Snap Flow Studio operates under the activeTab permission model. It only inspects the active browser tab when you click a capture action, and never monitors other tabs or history.</div>
+        </div>
+        <div class="faq-card">
+          <div class="faq-q">Why can internal browser pages not be captured?</div>
+          <div class="faq-a">Google Chrome enforces strict security restrictions blocking all extensions from running content scripts on internal pages (chrome://, edge://, about:) and the Chrome Web Store gallery.</div>
+        </div>
+        <div class="faq-card">
+          <div class="faq-q">Which export formats are supported?</div>
+          <div class="faq-a">You can copy directly to your system clipboard as PNG, download Lossless PNG, compressed JPEG, modern WebP, or generate multi-page Smart-Split PDF files.</div>
+        </div>
+        <div class="faq-card">
+          <div class="faq-q">How does Smart-Split PDF avoid cutting text lines?</div>
+          <div class="faq-a">Before dividing tall images across pages, the exporter analyzes horizontal pixel gutters to detect whitespace between paragraphs, placing page breaks naturally in empty gutters.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Support Section -->
+  <section id="support" class="section">
+    <div class="container">
+      <div class="support-card">
+        <span class="section-label">Help & Assistance</span>
+        <h3>Need Help or Found a Bug?</h3>
+        <p>
+          We are committed to building the most reliable browser capture experience. For inquiries, technical questions, or bug reports, reach out to our team:
+        </p>
+
+        <div class="support-email-box">
+          <span>✉️</span>
+          <a href="mailto:gmuraguri75@gmail.com" class="support-email-link" id="support-email-text">gmuraguri75@gmail.com</a>
+        </div>
+
+        <p style="font-size: 0.88rem; color: var(--text-dim);">
+          Direct inquiry channel. Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">BaziQ Hue</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a href="index.html" class="brand-link">
+            <img src="../snapflow-extension/icons/icon48.png" alt="Snap Flow Studio" class="brand-icon">
+            <span>Snap Flow Studio</span>
+          </a>
+          <p>
+            Privacy-first Chrome screenshot and full-page capture engine. 100% client-side, zero tracking, and local-first image processing.
+          </p>
+          <div class="footer-parent-brand" style="margin-top: 14px; font-size: 0.9rem; color: var(--text-muted);">
+            Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline; font-weight: 600;">BaziQ Hue</a>.
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h5>Product</h5>
+          <ul class="footer-links-list">
+            <li><a href="#modes">Capture Modes</a></li>
+            <li><a href="#studio">Studio Editor</a></li>
+            <li><a href="#privacy">Privacy Principles</a></li>
+            <li><a href="#faq">FAQ</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>Legal & Security</h5>
+          <ul class="footer-links-list">
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="privacy.html#permissions">Permissions Justification</a></li>
+            <li><a href="privacy.html#local">Zero Telemetry Audit</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>Connect</h5>
+          <ul class="footer-links-list">
+            <li><a href="#" class="cws-install-btn">Chrome Web Store</a></li>
+            <li><a href="mailto:gmuraguri75@gmail.com">Contact Support</a></li>
+            <li><a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener">BaziQ Hue</a></li>
+            <li><a href="https://github.com" target="_blank" rel="noopener">GitHub</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>&copy; 2026 Snap Flow Studio. All rights reserved. Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">BaziQ Hue</a>.</span>
+        <span>Manifest V3 Verified &bull; Pure Client-Side Architecture</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Centralized Extension & Store Link Configuration -->
+  <script>
+    // Centralized configuration for Chrome Web Store listing URL.
+    // Replace with your official extension listing ID upon store publishing.
+    const CHROME_STORE_URL = "https://chromewebstore.google.com/detail/snap-flow-studio/PLACEHOLDER_EXTENSION_ID";
+
+    document.querySelectorAll('.cws-install-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        if (CHROME_STORE_URL.includes('PLACEHOLDER')) {
+          e.preventDefault();
+          alert('Snap Flow Studio Chrome Web Store package is currently staged for store publication. Load the unpacked extension from the release build folder or check back once the listing is live!');
+        } else {
+          btn.href = CHROME_STORE_URL;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
