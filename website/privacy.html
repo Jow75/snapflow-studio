@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy - Snap Flow Studio</title>
-  <meta name="description" content="Snap Flow Studio Privacy Policy. Transparent, honest documentation of local client-side image processing, zero telemetry, minimal permissions, and zero data collection.">
+  <meta name="description" content="Snap Flow Studio Privacy Policy: what the extension captures, where screenshots are stored, the 10-capture retention rule, permissions, and how to remove your data. Local processing, zero telemetry.">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="icons/icon48.png">
 </head>
@@ -25,7 +25,7 @@
           <li><a href="index.html">Home</a></li>
           <li><a href="index.html#modes">Capture Modes</a></li>
           <li><a href="index.html#studio">Editor</a></li>
-          <li><a href="index.html#support">Support</a></li>
+          <li><a href="support.html">Support</a></li>
         </ul>
       </nav>
 
@@ -40,7 +40,7 @@
     <div class="container">
       <h1 style="font-size: 2.8rem; margin-bottom: 12px;">Privacy Policy</h1>
       <p style="font-size: 1.1rem; color: var(--accent-cyan);">
-        Effective Date: October 10, 2026 &bull; Architecture Standard: Zero Telemetry &bull; Local-First
+        Effective Date: October 12, 2026 &bull; Architecture Standard: Zero Telemetry &bull; Local-First
       </p>
     </div>
   </section>
@@ -49,129 +49,163 @@
   <main class="policy-content container">
     <div class="policy-callout">
       <p>
-        <strong>Executive Summary:</strong> Snap Flow Studio is engineered as an offline-capable, local-first browser extension. We do not collect, transmit, sell, or analyze your screenshots, webpage content, or browsing history. All image capture, stitching, annotation, and export occurs solely within your local browser process.
+        <strong>Summary:</strong> Snap Flow Studio is a local-first browser extension. When you ask it to, it takes a screenshot of the page you are viewing and stores that screenshot in your own browser so you can edit and export it. Capturing, stitching, annotation and export all happen on your computer. The extension has no server, no account system and no analytics, and it does not send your screenshots, the pages you visit or any other information to us or to anyone else.
       </p>
     </div>
 
     <section class="policy-section">
       <h2>1. Purpose of Snap Flow Studio</h2>
       <p>
-        Snap Flow Studio is a Google Chrome browser extension designed to help users capture full-page webpages, visible viewports, rectangular selections, and inner scrolling panels, annotate those screenshots with vector shapes, stickers, and redaction masks, and export them into PNG, JPEG, WebP, or multi-page PDF documents.
+        Snap Flow Studio is a Google Chrome extension with one purpose: capturing screenshots of web pages and editing them. It captures a full page, the visible area, a selected rectangle or a scrolling region inside a page, opens the result in a built-in editor (the Studio) where you can annotate, crop, blur or redact it, and exports it as PNG, JPEG, WebP or PDF, or copies it to the clipboard.
       </p>
     </section>
 
     <section class="policy-section">
-      <h2>2. What Information is Accessed and How It Is Used</h2>
+      <h2>2. What the Extension Handles and Why</h2>
       <p>
-        When you explicitly initiate a screenshot operation (by clicking the extension icon or pressing a keyboard shortcut), Snap Flow Studio accesses:
+        The extension does nothing on a page until you start a capture, either from its toolbar button or with a keyboard shortcut. When you do, it handles the following, on the active tab only:
       </p>
       <ul>
         <li>
-          <strong>Visible Viewport Pixels:</strong> Via Chrome's native <code>chrome.tabs.captureVisibleTab</code> API, the browser renders an image buffer of the visible webpage section.
+          <strong>The content of the page you capture:</strong> Chrome's <code>chrome.tabs.captureVisibleTab</code> API produces an image of what is shown in the tab. For a full page or a scrolling region the extension scrolls the page and takes several images, which it joins into one. A screenshot contains whatever was on the page, which can include personal or sensitive information if the page showed any.
         </li>
         <li>
-          <strong>Document Geometry & Coordinates:</strong> Content scripts inspect <code>window.innerWidth</code>, <code>window.innerHeight</code>, and document scroll heights to calculate stitch offsets and coordinate alignments.
+          <strong>Page layout measurements:</strong> a script that the extension adds to the page reads sizes and scroll positions so the images can be aligned, and temporarily hides or pins elements such as sticky headers while the capture runs. The page is put back as it was afterwards.
         </li>
         <li>
-          <strong>Source Page URL and Title:</strong> The active tab's URL and title are retrieved solely to optionally populate the metadata banner (e.g., top URL pill or timestamp header) in your edited screenshot if you choose to enable it.
+          <strong>The page's address and title:</strong> saved with the capture to name it in the Studio, to name exported files, and to fill in the optional URL and date banner if you switch that on.
+        </li>
+        <li>
+          <strong>Your preferences:</strong> the capture settings you choose (scroll delay, sticky-header handling, lazy-load sweep, default export format) and the emojis you used most recently in the editor.
         </li>
       </ul>
       <p>
-        <strong>Crucial Distinction:</strong> This information is accessed solely at the moment of capture, solely on the active tab you select, and solely in local browser memory.
+        This information is used only to produce, show, edit and export the screenshot you asked for. The extension does not read pages you have not asked it to capture, and it does not record your browsing history.
       </p>
     </section>
 
     <section id="local" class="policy-section">
       <h2>3. Where Screenshots are Processed and Stored</h2>
       <p>
-        Snap Flow Studio contains <strong>no remote cloud backends</strong> and <strong>no image rendering servers</strong>:
+        Snap Flow Studio has <strong>no remote cloud backends</strong> and <strong>no image rendering servers</strong>:
       </p>
       <ul>
         <li>
-          <strong>Local In-Memory Stitching:</strong> Slices are assembled onto an HTML5 <code>&lt;canvas&gt;</code> element directly in your browser.
+          <strong>Local processing:</strong> images are joined, edited and exported on an HTML5 <code>&lt;canvas&gt;</code> inside your browser. PDF files are generated on your device as well.
         </li>
         <li>
-          <strong>Local IndexedDB Storage:</strong> When a capture completes, the image tiles and metadata are stored in a sandboxed, client-side IndexedDB database (<code>SnapFlowCaptureDB</code>) on your local computer so you can edit the image in the Studio tab.
+          <strong>Local IndexedDB Storage:</strong> each capture (its images, the page address and title, and capture details) is saved in an IndexedDB database named <code>SnapFlowCaptureDB</code> that belongs to the extension inside your Chrome profile on your computer. This is what lets the Studio open a capture. Web pages cannot read it.
         </li>
         <li>
-          <strong>Zero Cloud Uploads:</strong> No image data is ever transmitted across the internet to our servers or any third-party cloud service.
+          <strong>Local preferences:</strong> settings are saved with <code>chrome.storage.local</code>, and recently used emojis in the extension's own local storage, on the same computer.
+        </li>
+        <li>
+          <strong>No uploads:</strong> the extension does not transmit captures, page addresses, settings or any other information over the network. It contains no code that contacts a server.
+        </li>
+        <li>
+          <strong>No added encryption:</strong> the extension does not encrypt its local database itself. Captures are protected in the same way as the rest of your Chrome profile, by your operating system account.
         </li>
       </ul>
+      <p>
+        Files you export are saved by Chrome to your downloads folder, and images you copy go to your system clipboard. From then on they are ordinary files and clipboard contents under your control.
+      </p>
     </section>
 
     <section class="policy-section">
       <h2>4. Zero Telemetry, Analytics, and Tracking</h2>
       <p>
-        We believe that privacy tools should not spy on their users. Snap Flow Studio:
+        Snap Flow Studio:
       </p>
       <ul>
-        <li>Does <strong>NOT</strong> embed Google Analytics, Mixpanel, Amplitude, Segment, or Firebase.</li>
+        <li>Does <strong>NOT</strong> include Google Analytics, Mixpanel, Amplitude, Segment, Firebase or any other analytics or advertising software.</li>
         <li>Does <strong>NOT</strong> use tracking pixels or marketing beacons.</li>
-        <li>Does <strong>NOT</strong> assign unique tracking identifiers (UUIDs) across sessions.</li>
-        <li>Does <strong>NOT</strong> track which websites you visit or what content you capture.</li>
+        <li>Does <strong>NOT</strong> create an account for you or assign you an identifier.</li>
+        <li>Does <strong>NOT</strong> sell or share information with third parties. Nothing leaves your device, so there is nothing to share.</li>
+        <li>Does <strong>NOT</strong> load or run code from the internet. All of its code is inside the installed package.</li>
       </ul>
       <p>
-        This policy is validated via continuous automated unit tests in our production build pipeline, which verify that zero external tracking endpoints exist in our codebase.
+        The popup contains links to this website, this policy, the BaziQ Hue website and a support email address. They open only when you click them.
       </p>
     </section>
 
     <section id="permissions" class="policy-section">
       <h2>5. Browser Permissions Justification</h2>
       <p>
-        In accordance with Chrome Web Store Least-Privilege policies, Snap Flow Studio requests only the minimal permissions technically required for its features:
+        Snap Flow Studio requests three permissions, each needed for capturing and editing screenshots:
       </p>
       <ul>
         <li>
-          <code>activeTab</code>: Grants temporary access to the active webpage only when you explicitly invoke the extension. It allows reading document dimensions and capturing visible viewport slices. It does not provide access to background tabs or unvisited sites.
+          <code>activeTab</code>: gives temporary access to the tab you are viewing, and only after you click the extension's button or press one of its shortcuts. It is what allows the screenshot to be taken. It gives no access to other tabs or to sites you have not used the extension on.
         </li>
         <li>
-          <code>scripting</code>: Allows executing the local scroll and selection scripts (<code>content.js</code>) on the active tab to perform automated scrolling and region marquee dragging.
+          <code>scripting</code>: lets the extension add its capture script to that tab so it can scroll the page, measure it, and show the area and region selection tools.
         </li>
         <li>
-          <code>storage</code>: Used strictly to save your local UI preferences (e.g., scroll delay, auto-hide sticky headers, default export format) in <code>chrome.storage.local</code> on your device.
+          <code>storage</code>: saves your capture settings on your device, and keeps track of a capture that is in progress so it is not lost if Chrome pauses the extension.
         </li>
       </ul>
       <p>
-        Snap Flow Studio <strong>never</strong> requests broad permissions like <code>&lt;all_urls&gt;</code>, <code>webRequest</code>, <code>history</code>, or <code>bookmarks</code>.
+        Snap Flow Studio does not request access to all websites (<code>&lt;all_urls&gt;</code>), and does not request <code>tabs</code>, <code>webRequest</code>, <code>history</code>, <code>cookies</code>, <code>bookmarks</code> or <code>downloads</code>.
       </p>
     </section>
 
-    <section class="policy-section">
-      <h2>6. Data Retention and Uninstallation</h2>
+    <section id="retention" class="policy-section">
+      <h2>6. Data Retention, Deletion and Uninstallation</h2>
+      <ul>
+        <li><strong>Only your 10 most recent captures are kept.</strong> When you make a new capture, anything older than those 10 is deleted from the local database automatically, together with its images.</li>
+        <li><strong>Closing the Studio tab does not delete a capture.</strong> It stays in the local database until it is no longer one of the 10 most recent, or until you remove the extension as described below.</li>
+        <li><strong>Edits are not saved back.</strong> The database holds the capture as it was taken. Annotations, crops, blurs and redactions exist in the open Studio tab and in the files you export from it. A redaction therefore removes the hidden pixels from your exported file, but the original capture remains in local storage under the 10-capture rule.</li>
+        <li><strong>Undo history</strong> is kept in memory in the open Studio tab only. The "Purge History" button clears it, and closing the tab discards it.</li>
+        <li><strong>Deleting everything:</strong> the extension does not currently have its own delete button. To remove all stored captures and settings, uninstall Snap Flow Studio (open <code>chrome://extensions</code> and choose Remove). Chrome deletes the extension's local database and settings when it is removed. You can install it again afterwards.</li>
+        <li><strong>Exported files</strong> are not tracked by the extension. Delete them as you would any other file.</li>
+      </ul>
+    </section>
+
+    <section id="limited-use" class="policy-section">
+      <h2>7. Chrome Web Store Limited Use Disclosure</h2>
       <p>
-        Because all screenshot data and settings reside exclusively on your local computer:
+        Snap Flow Studio's use of information complies with the <a href="https://developer.chrome.com/docs/webstore/program-policies/limited-use" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">Chrome Web Store User Data Policy</a>, including the Limited Use requirements:
       </p>
       <ul>
-        <li>You can purge editing history at any time by clicking the "Purge History" lock button in the Studio workspace.</li>
-        <li>Uninstalling the Snap Flow Studio extension from Chrome immediately and irreversibly deletes all associated IndexedDB captures, local storage settings, and extension cache from your machine.</li>
+        <li><strong>Use:</strong> page content is used only to provide the screenshot capture and editing you request.</li>
+        <li><strong>Transfer:</strong> no user data is transferred to us or to any third party.</li>
+        <li><strong>Advertising:</strong> no user data is used for advertising of any kind.</li>
+        <li><strong>Human access:</strong> nobody other than you can read your captures, because they never leave your device.</li>
       </ul>
     </section>
 
     <section class="policy-section">
-      <h2>7. Children's Privacy</h2>
+      <h2>8. This Website</h2>
       <p>
-        Snap Flow Studio does not collect any personal information from any user, including children under the age of 13.
+        This website is a set of static pages. It sets no cookies and contains no analytics or advertising scripts. It is hosted by Netlify, which, like any web host, processes the technical information needed to deliver a page (such as your IP address) when you visit.
       </p>
     </section>
 
     <section class="policy-section">
-      <h2>8. Changes to this Policy</h2>
+      <h2>9. Children's Privacy</h2>
       <p>
-        If we update the extension to introduce new features, this policy will be updated to transparently reflect any technical changes. The core commitment—zero server uploads, local processing, and zero telemetry—will remain non-negotiable.
+        Snap Flow Studio is a general-purpose tool and is not directed at children. It does not collect personal information from any user, including children under the age of 13.
       </p>
     </section>
 
     <section class="policy-section">
-      <h2>9. Contact and Questions</h2>
+      <h2>10. Changes to this Policy</h2>
       <p>
-        If you have questions, concerns, or technical inquiries regarding this Privacy Policy or Snap Flow Studio, please contact:
+        If a future version of the extension changes how it handles information, this policy and its effective date will be updated before that version is released.
+      </p>
+    </section>
+
+    <section class="policy-section">
+      <h2>11. Contact and Questions</h2>
+      <p>
+        If you have questions about this Privacy Policy or about Snap Flow Studio, please contact:
       </p>
       <div class="support-email-box">
         <span>✉️</span>
         <a href="mailto:gmuraguri75@gmail.com" class="support-email-link" style="color: var(--accent-cyan); text-decoration: underline;">gmuraguri75@gmail.com</a>
       </div>
       <p style="font-size: 0.88rem; color: var(--text-dim);">
-        Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">BaziQ Hue</a>.
+        More help is on the <a href="support.html" style="color: var(--accent-cyan); text-decoration: underline;">Support page</a>. Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">BaziQ Hue</a>.
       </p>
     </section>
   </main>

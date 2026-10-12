@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snap Flow fixture - history that loads as it is scrolled</title>
+<style>
+  /* A conversation-history list of the kind found in chat applications: only part
+     of it exists at first, and more rows are fetched when its bottom is reached.
+
+     Query parameters
+       rows=N        rows present at the start (default 40)
+       rowh=N        row height in px (default 40)
+       pages=N|inf   further loads available (default 0: nothing more to load)
+       page=N        rows added by each load (default 20)
+       sizes=a,b,c   rows added by each load, one entry per load (overrides pages/page)
+       delay=N       ms each load takes (default 300)
+       indicator=    skeleton (animated placeholder, default) | static | none
+       trigger=      io (IntersectionObserver sentinel, default) | scroll (scroll events only)
+       mode=         append (default) | virtual (only the visible rows are in the DOM)
+       render=N      virtual mode: ms before a scrolled window is drawn (default: next frame)
+       shell=        sidebar (default, the document does not scroll) | nested (the list
+                     sits part-way down another scrolling panel)
+
+     The ruler strip encodes each content row y as R = y >> 8, G = y & 255, B = 130.
+     The loading placeholder is never ruler-coloured, so a capture that photographed
+     it instead of the rows that replaced it fails the ruler check. */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; font: 14px Arial, sans-serif; background: #e2e8f0; }
+  #app { display: grid; grid-template-columns: 300px 1fr; height: 100vh; }
+  #side { display: flex; flex-direction: column; min-height: 0; background: #171717; color: #ececec; }
+  #side-top { flex: none; height: 52px; display: flex; align-items: center; padding: 0 14px; font-weight: bold; border-bottom: 1px solid #2f2f2f; }
+  #side-bottom { flex: none; height: 56px; display: flex; align-items: center; padding: 0 14px; border-top: 1px solid #2f2f2f; color: #a3a3a3; }
+  #history { flex: 1; min-height: 0; overflow-y: auto; position: relative; }
+  #main { background: #ffffff; padding: 28px; color: #334155; }
+
+  body.nested #app { display: block; height: 100vh; }
+  body.nested #outer { height: 100vh; overflow-y: auto; background: #f1f5f9; }
+  body.nested .filler { padding: 20px; color: #475569; }
+  body.nested #history { height: 360px; width: 320px; margin: 0 40px; background: #171717; color: #ececec; border: 3px solid #f59e0b; flex: none; }
+
+  .chunk { display: flex; align-items: flex-start; }
+  canvas.strip { flex: none; display: block; image-rendering: pixelated; }
+  .rows { flex: 1; min-width: 0; }
+  .row { padding: 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid #262626; }
+  #loading { height: 80px; background: #7f1d1d; display: flex; flex-direction: column; justify-content: space-evenly; padding: 0 12px; }
+  #loading .bar { height: 18px; width: 70%; border-radius: 6px; background: #404040; animation: pulse 0.9s ease-in-out infinite; }
+  body.indicator-static #loading .bar { animation: none; }
+  @keyframes pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+  /* Pulled up by its own height so it adds nothing to the list's scroll height. */
+  #sentinel { height: 1px; margin-top: -1px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+  const q = new URLSearchParams(location.search);
+  const num = (key, fallback) => (q.has(key) ? Number(q.get(key)) : fallback);
+
+  const CHANNEL = 130;
+  const STRIP = 16;
+  const cfg = {
+    rows: num('rows', 40),
+    rowh: num('rowh', 40),
+    pages: q.get('pages') === 'inf' ? Infinity : num('pages', 0),
+    page: num('page', 20),
+    sizes: q.get('sizes') ? q.get('sizes').split(',').map(Number) : null,
+    delay: num('delay', 300),
+    indicator: q.get('indicator') || 'skeleton',
+    trigger: q.get('trigger') || 'io',
+    mode: q.get('mode') || 'append',
+    render: num('render', 0),
+    shell: q.get('shell') || 'sidebar'
+  };
+  const ROW = cfg.rowh;
+
+  /** What the tests read back: how much has loaded and whether a load is in flight. */
+  const state = { total: 0, loads: 0, loading: false, rowHeight: ROW };
+  window.__history = state;
+
+  // --- Page shell ----------------------------------------------------------
+  const app = document.getElementById('app');
+  const list = document.createElement('div');
+  list.id = 'history';
+  if (cfg.shell === 'nested') {
+    document.body.classList.add('nested');
+    const outer = document.createElement('div');
+    outer.id = 'outer';
+    const before = document.createElement('div');
+    before.className = 'filler';
+    before.style.height = '520px';
+    before.textContent = 'Panel content above the history list. The list starts below the fold of this panel.';
+    const after = document.createElement('div');
+    after.className = 'filler';
+    after.style.height = '900px';
+    after.textContent = 'Panel content below the history list.';
+    outer.append(before, list, after);
+    app.appendChild(outer);
+  } else {
+    const side = document.createElement('div');
+    side.id = 'side';
+    const top = document.createElement('div');
+    top.id = 'side-top';
+    top.textContent = 'New chat';
+    const bottom = document.createElement('div');
+    bottom.id = 'side-bottom';
+    bottom.textContent = 'Account';
+    side.append(top, list, bottom);
+    const main = document.createElement('div');
+    main.id = 'main';
+    main.textContent = 'Conversation area. Only the history list on the left loads more as it is scrolled.';
+    app.append(side, main);
+  }
+  if (cfg.indicator === 'static') document.body.classList.add('indicator-static');
+
+  // --- Rows ----------------------------------------------------------------
+  /** Ruler strip for content rows [top, top + height). */
+  function makeStrip(top, height) {
+    const canvas = document.createElement('canvas');
+    canvas.className = 'strip';
+    canvas.width = STRIP;
+    canvas.height = height;
+    canvas.style.width = STRIP + 'px';
+    canvas.style.height = height + 'px';
+    const ctx = canvas.getContext('2d');
+    const img = ctx.createImageData(STRIP, height);
+    for (let i = 0; i < height; i++) {
+      const y = top + i;
+      for (let x = 0; x < STRIP; x++) {
+        const o = (i * STRIP + x) * 4;
+        img.data[o] = (y >> 8) & 255;
+        img.data[o + 1] = y & 255;
+        img.data[o + 2] = CHANNEL;
+        img.data[o + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    return canvas;
+  }
+
+  function makeRow(index) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.dataset.index = index;
+    row.style.height = ROW + 'px';
+    row.style.lineHeight = ROW + 'px';
+    row.textContent = `Conversation ${String(index + 1).padStart(4, '0')} about something`;
+    return row;
+  }
+
+  const content = document.createElement('div');
+  content.id = 'content';
+  const loadingEl = document.createElement('div');
+  loadingEl.id = 'loading';
+  loadingEl.innerHTML = '<div class="bar"></div><div class="bar" style="width:55%"></div>';
+  const sentinel = document.createElement('div');
+  sentinel.id = 'sentinel';
+  list.append(content, sentinel);
+
+  let renderTimer = null;
+  function renderVirtual() {
+    const first = Math.max(0, Math.floor(list.scrollTop / ROW) - 2);
+    const last = Math.min(state.total, first + Math.ceil(list.clientHeight / ROW) + 4);
+    content.textContent = '';
+    const strip = makeStrip(first * ROW, Math.max(0, last - first) * ROW);
+    strip.style.cssText += `position:absolute;left:0;top:${first * ROW}px;`;
+    content.appendChild(strip);
+    for (let i = first; i < last; i++) {
+      const row = makeRow(i);
+      row.style.cssText += `position:absolute;left:${STRIP}px;right:0;top:${i * ROW}px;`;
+      content.appendChild(row);
+    }
+  }
+
+  function scheduleRender() {
+    if (cfg.render > 0) {
+      clearTimeout(renderTimer);
+      renderTimer = setTimeout(renderVirtual, cfg.render);
+    } else {
+      requestAnimationFrame(renderVirtual);
+    }
+  }
+
+  function addRows(count) {
+    const from = state.total;
+    state.total += count;
+    if (cfg.mode === 'virtual') {
+      content.style.cssText = `position:relative;height:${state.total * ROW}px;`;
+      renderVirtual();
+      return;
+    }
+    // Chunks of at most 200 rows keep every strip canvas small.
+    for (let start = from; start < state.total; start += 200) {
+      const n = Math.min(200, state.total - start);
+      const chunk = document.createElement('div');
+      chunk.className = 'chunk';
+      const rows = document.createElement('div');
+      rows.className = 'rows';
+      for (let i = start; i < start + n; i++) rows.appendChild(makeRow(i));
+      chunk.append(makeStrip(start * ROW, n * ROW), rows);
+      content.appendChild(chunk);
+    }
+  }
+
+  // --- Loading more --------------------------------------------------------
+  const pagesLeft = () => (cfg.sizes ? state.loads < cfg.sizes.length : state.loads < cfg.pages);
+
+  function nearBottom(margin) {
+    return list.scrollTop + list.clientHeight >= list.scrollHeight - margin;
+  }
+
+  function loadMore() {
+    if (state.loading || !pagesLeft()) return;
+    state.loading = true;
+    if (cfg.indicator !== 'none') list.insertBefore(loadingEl, sentinel);
+    setTimeout(() => {
+      loadingEl.remove();
+      addRows(cfg.sizes ? cfg.sizes[state.loads] : cfg.page);
+      state.loads++;
+      state.loading = false;
+      // Like real lists, look again once a page has arrived: the sentinel may still be in range.
+      if (cfg.trigger === 'io') requestAnimationFrame(() => { if (nearBottom(200)) loadMore(); });
+    }, cfg.delay);
+  }
+
+  addRows(cfg.rows);
+
+  if (cfg.mode === 'virtual') list.addEventListener('scroll', scheduleRender);
+  if (cfg.trigger === 'scroll') {
+    list.addEventListener('scroll', () => { if (nearBottom(50)) loadMore(); });
+  } else {
+    new IntersectionObserver(
+      (entries) => { if (entries.some((e) => e.isIntersecting)) loadMore(); },
+      { root: list, rootMargin: '0px 0px 200px 0px' }
+    ).observe(sentinel);
+  }
+</script>
+</body>
+</html>

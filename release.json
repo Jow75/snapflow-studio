@@ -1,0 +1,6 @@
+{
+  "about": "Chrome Web Store submission numbers, oldest first. The last entry is the one build-package.js builds. Add the next with: node build-package.js --next-submission",
+  "submissions": [
+    { "submissionVersion": "1.0.0.0", "developmentVersion": "1.1.0" }
+  ]
+}

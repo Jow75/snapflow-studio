@@ -1,17 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "SnapFlow - Full Page Screen Capture & Studio",
-  "version": "1.0.0",
-  "description": "Fast, 100% private, local-first full page web capture with desktop editing, true redaction, and smart-split PDF export.",
+  "name": "Snap Flow Studio - Full Page Screenshot & Editor",
+  "version": "1.1.0",
+  "description": "Capture a full page, the visible area, a selected area or a scrolling region, then annotate and export as PNG, JPEG, WebP or PDF.",
   "permissions": [
     "activeTab",
     "scripting",
-    "downloads",
     "storage"
   ],
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "SnapFlow Capture",
+    "default_title": "Snap Flow Studio",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -42,17 +41,6 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "studio/*",
-        "icons/*"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
-    }
-  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self';"
   }

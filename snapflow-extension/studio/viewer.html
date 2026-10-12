@@ -146,8 +146,8 @@
           <span>WebP</span>
         </button>
 
-        <!-- Smart-Split PDF -->
-        <button id="btn-export-pdf" class="btn btn-primary" title="Export Smart-Split Multi-Page PDF">
+        <!-- PDF -->
+        <button id="btn-export-pdf" class="btn btn-primary" title="Export PDF (choose page size and layout)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           <span>Export PDF</span>
         </button>
@@ -311,6 +311,9 @@
         <button class="zoom-option" data-zoom="2.0">200%</button>
       </div>
 
+      <!-- Capture notices: things the user should know about this capture -->
+      <div id="capture-notices" class="capture-notices hidden" role="status"></div>
+
       <!-- Canvas Viewport Area -->
       <main id="viewport-container" class="viewport-container">
         <div id="canvas-wrapper" class="canvas-wrapper">
@@ -330,16 +333,17 @@
     <div id="pdf-modal" class="modal-backdrop hidden">
       <div class="modal-card">
         <div class="modal-header">
-          <h3>Smart-Split PDF Exporter</h3>
+          <h3>Export PDF</h3>
           <button id="btn-close-pdf-modal" class="icon-btn-sm">&times;</button>
         </div>
         <div class="modal-body">
-          <p class="modal-desc">Generates a multi-page PDF locally. Automatically scans horizontal whitespace gutters so text lines are never sliced in half.</p>
+          <p class="modal-desc">Generated on your device. The screenshot always keeps its proportions; these settings only decide how it is placed on the page.</p>
           <div class="form-group">
             <label for="pdf-page-size">Page Size</label>
             <select id="pdf-page-size">
               <option value="a4" selected>A4 (210 × 297 mm)</option>
               <option value="letter">US Letter (8.5 × 11 in)</option>
+              <option value="image">Same as image (one page, no paper size)</option>
             </select>
           </div>
           <div class="form-group">
@@ -350,16 +354,25 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="pdf-margin">Page Margins</label>
-            <select id="pdf-margin">
-              <option value="10" selected>Standard (10mm)</option>
-              <option value="0">Full Bleed (0mm)</option>
+            <label for="pdf-layout">Layout</label>
+            <select id="pdf-layout">
+              <option value="split" selected>Split across pages (fit page width, stays readable)</option>
+              <option value="fit">Fit entire image on one page (may be small)</option>
             </select>
           </div>
+          <div class="form-group">
+            <label for="pdf-margin">Page Margins</label>
+            <select id="pdf-margin">
+              <option value="10" selected>Standard (10 mm)</option>
+              <option value="20">Wide (20 mm)</option>
+              <option value="0">None (0 mm)</option>
+            </select>
+          </div>
+          <p id="pdf-summary" class="pdf-summary" aria-live="polite"></p>
         </div>
         <div class="modal-footer">
           <button id="btn-pdf-cancel" class="btn btn-secondary">Cancel</button>
-          <button id="btn-pdf-confirm" class="btn btn-primary">Generate & Download PDF</button>
+          <button id="btn-pdf-confirm" class="btn btn-primary">Download PDF</button>
         </div>
       </div>
     </div>
@@ -368,6 +381,8 @@
 
   <!-- Scripts -->
   <script src="../engine/scroll-stitcher.js"></script>
+  <script src="../engine/capture-store.js"></script>
+  <script src="image-exporter.js"></script>
   <script src="pdf-exporter.js"></script>
   <script src="annotator.js"></script>
   <script src="viewer.js"></script>

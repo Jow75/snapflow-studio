@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snap Flow fixture - app shell</title>
+<style>
+  /* A chat-style application shell: the document itself never scrolls, every
+     region scrolls independently. Channel ids (ruler blue value) per region:
+     sidebar 101, conversation 102, code block 103, table panel 104,
+     nested outer 105, nested inner 106, virtual list 107, right panel 108. */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; font: 14px Arial, sans-serif; background: #e2e8f0; }
+  #shell { display: grid; grid-template-columns: 260px 1fr 300px; grid-template-rows: 48px 1fr 56px; height: 100vh; }
+  #topbar { grid-column: 1 / 4; background: #0f172a; color: #fff; display: flex; align-items: center; padding: 0 16px; font-weight: bold; }
+  #sidebar { grid-column: 1; grid-row: 2 / 4; background: #1e293b; overflow-y: auto; border-right: 3px solid #f59e0b; }
+  #conversation { grid-column: 2; grid-row: 2; overflow-y: auto; background: #fff; position: relative; }
+  #composer { grid-column: 2; grid-row: 3; background: #a78bfa; display: flex; align-items: center; padding: 0 16px; border-top: 2px solid #64748b; }
+  #right { grid-column: 3; grid-row: 2 / 4; background: #f8fafc; overflow-y: auto; border-left: 1px solid #94a3b8; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .card { background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; }
+  .card h4 { margin: 0 0 6px; font-size: 12px; color: #334155; }
+  #codeblock { height: 150px; overflow: auto; background: #0b1220; border: 4px solid #22c55e; padding: 0; }
+  #tablepanel { height: 170px; overflow: auto; border: 2px solid #6366f1; }
+  #tablepanel table { border-collapse: collapse; width: 100%; }
+  #tablepanel th { position: sticky; top: 0; background: #312e81; color: #fff; height: 28px; padding: 0 8px; text-align: left; }
+  #tablepanel td { height: 24px; padding: 0 8px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+  #nested-outer { height: 200px; overflow-y: auto; border: 2px solid #ec4899; }
+  #nested-inner { height: 110px; overflow-y: auto; border: 2px solid #14b8a6; margin: 8px; }
+  #short { height: 60px; overflow: auto; border: 1px dashed #64748b; padding: 6px; }
+  #virtual { height: 180px; overflow-y: auto; border: 2px solid #f97316; position: relative; }
+  #conv-sticky { position: sticky; top: 0; height: 36px; background: #fde047; display: flex; align-items: center; padding: 0 12px; font-weight: bold; z-index: 5; }
+  #fab { position: fixed; right: 330px; bottom: 80px; width: 52px; height: 52px; border-radius: 50%; background: #dc2626; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 90; }
+  .code-line { color: #a5f3fc; font: 12px/18px Consolas, monospace; height: 18px; white-space: pre; padding: 0 8px; }
+</style>
+</head>
+<body>
+<div id="shell">
+  <div id="topbar">APP TOP BAR</div>
+  <div id="sidebar"></div>
+  <div id="conversation"></div>
+  <div id="composer">COMPOSER BAR (below the conversation)</div>
+  <div id="right">
+    <div class="card"><h4>Code block (scrolls both ways)</h4><div id="codeblock"></div></div>
+    <div class="card"><h4>Table panel (sticky header)</h4><div id="tablepanel"></div></div>
+    <div class="card"><h4>Nested scrollers</h4><div id="nested-outer"></div></div>
+    <div class="card"><h4>Short, nothing to scroll</h4><div id="short">Only two lines of text.<br>No overflow here.</div></div>
+    <div class="card"><h4>Virtualised list</h4><div id="virtual"></div></div>
+  </div>
+</div>
+<div id="fab">FAB</div>
+
+<script src="ruler.js"></script>
+<script>
+  const q = new URLSearchParams(location.search);
+
+  // Sidebar: 2000px of conversation titles.
+  SFRuler.fill(document.getElementById('sidebar'), { height: 2000, channel: 101, label: 'Chat', rowHeight: 40 })
+    .querySelectorAll('.sf-row').forEach((row) => { row.style.background = '#1e293b'; row.style.color = '#e2e8f0'; row.style.borderColor = '#334155'; });
+
+  // Conversation: 3210px, optionally with a sticky header inside the scroller.
+  const conversation = document.getElementById('conversation');
+  if (q.get('convsticky')) {
+    const sticky = document.createElement('div');
+    sticky.id = 'conv-sticky';
+    sticky.textContent = 'CONVERSATION STICKY HEADER (must appear once)';
+    conversation.appendChild(sticky);
+  }
+  SFRuler.fill(conversation, { height: 3210, channel: 102, label: 'Assistant response' });
+
+  // Code block: 60 lines, 1300px wide content, so it overflows on both axes.
+  const code = document.getElementById('codeblock');
+  const codeInner = document.createElement('div');
+  codeInner.style.cssText = 'width:1300px;position:relative;';
+  codeInner.appendChild(SFRuler.makeRuler(1300, 113, true));
+  const codeBody = document.createElement('div');
+  codeBody.style.cssText = 'display:flex;';
+  codeBody.appendChild(SFRuler.makeRuler(60 * 18, 103, false));
+  const lines = document.createElement('div');
+  for (let i = 0; i < 60; i++) {
+    const line = document.createElement('div');
+    line.className = 'code-line';
+    line.textContent = `${String(i + 1).padStart(3, ' ')}  const value_${i} = compute(${i}, "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa", "lambda", "mu"); // end ${i}`;
+    lines.appendChild(line);
+  }
+  codeBody.appendChild(lines);
+  codeInner.appendChild(codeBody);
+  code.appendChild(codeInner);
+
+  // Table: sticky header + 70 rows.
+  const table = document.createElement('table');
+  table.innerHTML = '<thead><tr><th>#</th><th>Name</th><th>Status</th></tr></thead>';
+  const tbody = document.createElement('tbody');
+  for (let i = 0; i < 70; i++) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i + 1}</td><td>Record ${String(i + 1).padStart(3, '0')}</td><td>${i % 3 ? 'active' : 'paused'}</td>`;
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  document.getElementById('tablepanel').appendChild(table);
+
+  // Nested: outer 700px of content containing an inner 500px scroller.
+  const outer = document.getElementById('nested-outer');
+  const inner = document.createElement('div');
+  inner.id = 'nested-inner';
+  SFRuler.fill(inner, { height: 500, channel: 106, label: 'Inner', rowHeight: 25 });
+  const outerTop = document.createElement('div');
+  SFRuler.fill(outerTop, { height: 150, channel: 105, label: 'Outer A', rowHeight: 25 });
+  const outerBottom = document.createElement('div');
+  SFRuler.fill(outerBottom, { height: 420, channel: 115, label: 'Outer B', rowHeight: 25 });
+  outer.appendChild(outerTop);
+  outer.appendChild(inner);
+  outer.appendChild(outerBottom);
+
+  // Virtualised list: 400 logical rows, only the visible window is in the DOM.
+  // 32px rows stay on whole device pixels at 1.25 / 1.5 / 2, so each re-rendered
+  // window paints identically; otherwise the list itself would differ between frames.
+  const virtual = document.getElementById('virtual');
+  const ROW = 32, TOTAL = 400;
+  const spacer = document.createElement('div');
+  spacer.style.cssText = `height:${ROW * TOTAL}px;position:relative;`;
+  virtual.appendChild(spacer);
+  const ruler = SFRuler.makeRuler(ROW * TOTAL, 107, false);
+  function renderVirtual() {
+    const first = Math.max(0, Math.floor(virtual.scrollTop / ROW) - 2);
+    const last = Math.min(TOTAL, first + Math.ceil(virtual.clientHeight / ROW) + 4);
+    spacer.textContent = '';
+    // The ruler strip is redrawn per window too, so nothing outside it exists in the DOM.
+    const strip = document.createElement('canvas');
+    strip.width = SFRuler.WIDTH;
+    strip.height = (last - first) * ROW;
+    strip.style.cssText = `position:absolute;left:0;top:${first * ROW}px;width:${SFRuler.WIDTH}px;height:${strip.height}px;image-rendering:pixelated;`;
+    strip.getContext('2d').drawImage(ruler, 0, first * ROW, SFRuler.WIDTH, strip.height, 0, 0, SFRuler.WIDTH, strip.height);
+    spacer.appendChild(strip);
+    for (let i = first; i < last; i++) {
+      const row = document.createElement('div');
+      row.dataset.index = i;
+      row.style.cssText = `position:absolute;left:${SFRuler.WIDTH}px;right:0;top:${i * ROW}px;height:${ROW}px;line-height:${ROW}px;padding:0 8px;border-bottom:1px solid #e2e8f0;background:${i % 2 ? '#fff7ed' : '#fff'};white-space:nowrap;`;
+      row.textContent = `Virtual item ${String(i + 1).padStart(3, '0')}`;
+      spacer.appendChild(row);
+    }
+  }
+  // Rendered a frame late, like real virtual lists, so a capture must wait for it.
+  virtual.addEventListener('scroll', () => requestAnimationFrame(renderVirtual));
+  renderVirtual();
+
+  if (q.get('nofab')) document.getElementById('fab').remove();
+</script>
+</body>
+</html>

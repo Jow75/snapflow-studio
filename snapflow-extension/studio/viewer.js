@@ -9,7 +9,7 @@
  * - Interactive Crop confirmation pill and layer ordering controls
  * - Metadata header/footer injection (Browser window mockup, URL bar, Date/Time, ISO)
  * - Canvas padding & border custom background color tool
- * - High-fidelity export pipeline: 1-Click Clipboard, Lossless PNG, JPEG, WebP, Smart-Split Multi-Page PDF
+ * - Export pipeline: 1-Click Clipboard, PNG, JPEG, WebP, and PDF with explicit page layout
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -59,6 +59,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnPdfConfirm = document.getElementById('btn-pdf-confirm');
   const pdfPageSize = document.getElementById('pdf-page-size');
   const pdfOrientation = document.getElementById('pdf-orientation');
+  const pdfLayout = document.getElementById('pdf-layout');
+  const pdfMargin = document.getElementById('pdf-margin');
+  const pdfSummary = document.getElementById('pdf-summary');
+  const captureNotices = document.getElementById('capture-notices');
 
   // Toolbar & Inspector Controls
   const toolButtons = document.querySelectorAll('.floating-toolbar .tool-btn');
@@ -92,20 +96,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   let captureRecord = null;
   let activePadding = 0;
 
-  // 1. IndexedDB Reader
-  function getCaptureFromDB(id) {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open('SnapFlowCaptureDB', 1);
-      request.onsuccess = (e) => {
-        const db = e.target.result;
-        const tx = db.transaction('captures', 'readonly');
-        const store = tx.objectStore('captures');
-        const getReq = store.get(id);
-        getReq.onsuccess = () => resolve(getReq.result);
-        getReq.onerror = () => reject(getReq.error);
-      };
-      request.onerror = () => reject(request.error);
-    });
+  // 1. Capture notices (shown beside the image, never drawn into it)
+  function showNotices(messages) {
+    captureNotices.textContent = '';
+    if (!messages.length) {
+      captureNotices.classList.add('hidden');
+      return;
+    }
+    for (const message of messages) {
+      const item = document.createElement('div');
+      item.className = 'capture-notice';
+      const text = document.createElement('span');
+      text.textContent = message;
+      const dismiss = document.createElement('button');
+      dismiss.className = 'icon-btn-sm';
+      dismiss.title = 'Dismiss';
+      dismiss.textContent = '×';
+      dismiss.addEventListener('click', () => {
+        item.remove();
+        if (!captureNotices.childElementCount) captureNotices.classList.add('hidden');
+      });
+      item.append(text, dismiss);
+      captureNotices.appendChild(item);
+    }
+    captureNotices.classList.remove('hidden');
+  }
+
+  function drawOntoBase(source) {
+    baseCanvas.width = source.width;
+    baseCanvas.height = source.height;
+    if (baseCanvas.width !== source.width || baseCanvas.height !== source.height) {
+      throw new Error(`The browser could not allocate a ${source.width} × ${source.height} px canvas.`);
+    }
+    baseCanvas.getContext('2d').drawImage(source, 0, 0);
   }
 
   // 2. Load & Render Capture
@@ -117,7 +140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('[SnapFlow Studio] No captureId provided, initializing demo canvas.');
       captureRecord = {
         title: 'Demo Webpage Capture',
-        url: 'https://snapflow.app/demo',
+        url: 'https://snapflow-studio-app.netlify.app/',
         mode: 'visible'
       };
       docTitle.textContent = captureRecord.title;
@@ -171,39 +194,62 @@ document.addEventListener('DOMContentLoaded', async () => {
       ctx.font = '13px -apple-system, sans-serif';
       ctx.fillText('© 2026 SnapFlow Studio • Local & Private Workspace', 420, 765);
     } else {
-      captureRecord = await getCaptureFromDB(captureId);
+      captureRecord = await CaptureStore.getCapture(captureId);
       if (!captureRecord) {
         throw new Error('Capture record not found in local database.');
       }
-
-      docTitle.textContent = captureRecord.title || 'Webpage Capture';
-      document.title = `${captureRecord.title || 'Capture'} - SnapFlow Studio`;
-
-      if (captureRecord.mode === 'full') {
-        const stitchedCanvas = await ScrollStitcher.stitchToCanvas(captureRecord.slices, captureRecord.plan);
-        baseCanvas.width = stitchedCanvas.width;
-        baseCanvas.height = stitchedCanvas.height;
-        const ctx = baseCanvas.getContext('2d');
-        ctx.drawImage(stitchedCanvas, 0, 0);
-      } else if (captureRecord.mode === 'visible') {
-        const img = await ScrollStitcher.loadImage(captureRecord.rawImage);
-        baseCanvas.width = img.width;
-        baseCanvas.height = img.height;
-        const ctx = baseCanvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-      } else if (captureRecord.mode === 'selected') {
-        const croppedCanvas = await ScrollStitcher.cropImage(captureRecord.rawImage, captureRecord.cropArea);
-        baseCanvas.width = croppedCanvas.width;
-        baseCanvas.height = croppedCanvas.height;
-        const ctx = baseCanvas.getContext('2d');
-        ctx.drawImage(croppedCanvas, 0, 0);
-      } else if (captureRecord.mode === 'element') {
-        const stitchedCanvas = await ScrollStitcher.stitchElementToCanvas(captureRecord.slices, captureRecord.plan);
-        baseCanvas.width = stitchedCanvas.width;
-        baseCanvas.height = stitchedCanvas.height;
-        const ctx = baseCanvas.getContext('2d');
-        ctx.drawImage(stitchedCanvas, 0, 0);
+      if (captureRecord.format !== 2) {
+        throw new Error('This capture was made with an older version of SnapFlow. Please capture the page again.');
       }
+
+      const title = captureRecord.title || 'Webpage Capture';
+      document.title = `${captureRecord.title || 'Capture'} - SnapFlow Studio`;
+      const notices = (captureRecord.warnings || []).slice();
+
+      if (captureRecord.mode === 'full' || captureRecord.mode === 'element') {
+        // Frames are decoded one at a time and released, so memory stays flat on long pages.
+        const stitched = await ScrollStitcher.composeFrames(captureRecord.frames, captureRecord.plan, {
+          loadFrameImage: async (index) => {
+            const blob = await CaptureStore.getFrame(captureRecord.id, index);
+            if (!blob) throw new Error('A captured frame is missing from local storage.');
+            return createImageBitmap(blob);
+          },
+          releaseFrameImage: (bitmap) => bitmap.close(),
+          onProgress: (done, total) => {
+            docTitle.textContent = `Stitching frame ${done} of ${total}…`;
+          }
+        });
+        drawOntoBase(stitched.canvas);
+        stitched.canvas.width = 0; // release the intermediate buffer
+
+        if (stitched.shrink < 1) {
+          notices.unshift(
+            `At full resolution this capture is ${stitched.nativeWidth.toLocaleString()} × ${stitched.nativeHeight.toLocaleString()} px, ` +
+            `more than the browser can hold in one image. It was scaled to ${Math.round(stitched.shrink * 100)}% so nothing is cut off.`
+          );
+        }
+      } else if (captureRecord.mode === 'visible' || captureRecord.mode === 'selected') {
+        const img = await ScrollStitcher.loadImage(captureRecord.rawImage);
+        if (captureRecord.mode === 'selected' && captureRecord.cropCss) {
+          // The selection was drawn in CSS pixels; map it onto the bitmap's pixels.
+          const viewport = captureRecord.viewport || {};
+          const k = ScrollStitcher.resolveScale(viewport.dpr, img.width, viewport.vw);
+          const crop = captureRecord.cropCss;
+          drawOntoBase(ScrollStitcher.cropToCanvas(img, {
+            x: crop.x * k,
+            y: crop.y * k,
+            width: crop.w * k,
+            height: crop.h * k
+          }));
+        } else {
+          drawOntoBase(img);
+        }
+      } else {
+        throw new Error('Unknown capture type: ' + captureRecord.mode);
+      }
+
+      docTitle.textContent = title;
+      showNotices(notices);
     }
 
     // Match overlay dimensions
@@ -1403,12 +1449,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // 10. Toast Notification Helper
-  function showToast(message) {
+  let toastTimer = null;
+  function showToast(message, isError = false) {
     toast.textContent = message;
+    toast.classList.toggle('error', isError);
     toast.classList.remove('hidden');
-    setTimeout(() => {
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
       toast.classList.add('hidden');
-    }, 2400);
+    }, isError ? 7000 : 2400);
   }
 
   function getCleanFilename(ext) {
@@ -1418,72 +1467,84 @@ document.addEventListener('DOMContentLoaded', async () => {
     return `${sanitized}_snapflow_${dateStr}.${ext}`;
   }
 
-  // 11. High-Fidelity Exports
+  // 11. Exports
+  // Every format is produced from the same flattened canvas (image + annotations +
+  // banners) at that canvas's own pixel size. The editor's zoom never affects output.
+
   // A. 1-Click Clipboard Copy
   btnCopyClipboard.addEventListener('click', async () => {
     try {
-      const flatCanvas = annotator.getFlattenedCanvas();
-      flatCanvas.toBlob(async (blob) => {
-        if (!blob) throw new Error('Blob conversion failed');
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
-        ]);
-        showToast('Copied edited PNG to clipboard!');
-      }, 'image/png');
+      const blob = await ImageExporter.encode(annotator.getFlattenedCanvas(), 'png');
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      showToast('Copied edited PNG to clipboard!');
     } catch (err) {
       console.error('[SnapFlow] Clipboard copy failed:', err);
-      showToast('Clipboard error: ' + err.message);
+      showToast('Clipboard error: ' + err.message, true);
     }
   });
 
-  // B. PNG Lossless Download
-  btnExportPng.addEventListener('click', () => {
-    const flatCanvas = annotator.getFlattenedCanvas();
-    flatCanvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = getCleanFilename('png');
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Downloaded Lossless PNG!');
-    }, 'image/png');
-  });
+  // B-D. PNG, JPEG and WebP downloads
+  async function exportImage(formatKey, successMessage) {
+    try {
+      const format = ImageExporter.FORMATS[formatKey];
+      const blob = await ImageExporter.encode(annotator.getFlattenedCanvas(), formatKey);
+      ImageExporter.download(blob, getCleanFilename(format.extension));
+      showToast(successMessage);
+    } catch (err) {
+      console.error(`[SnapFlow] ${formatKey} export failed:`, err);
+      showToast(err.message, true);
+    }
+  }
 
-  // C. JPEG Download
-  btnExportJpeg.addEventListener('click', () => {
-    const flatCanvas = annotator.getFlattenedCanvas();
-    flatCanvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = getCleanFilename('jpg');
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Downloaded JPEG!');
-    }, 'image/jpeg', 0.92);
-  });
+  btnExportPng.addEventListener('click', () => exportImage('png', 'Downloaded Lossless PNG!'));
+  btnExportJpeg.addEventListener('click', () => exportImage('jpeg', 'Downloaded JPEG!'));
+  btnExportWebp.addEventListener('click', () => exportImage('webp', 'Downloaded WebP!'));
 
-  // D. WebP Download
-  btnExportWebp.addEventListener('click', () => {
-    const flatCanvas = annotator.getFlattenedCanvas();
-    flatCanvas.toBlob((blob) => {
-      if (!blob) {
-        showToast('WebP conversion not supported in this browser.');
-        return;
+  // E. PDF
+  function readPdfOptions() {
+    return {
+      size: pdfPageSize.value,
+      orientation: pdfOrientation.value,
+      layout: pdfLayout.value,
+      marginMm: parseFloat(pdfMargin.value) || 0
+    };
+  }
+
+  /** Describes, before exporting, what the chosen settings will produce. */
+  function updatePdfSummary() {
+    const options = readPdfOptions();
+    const sizedToImage = options.size === 'image';
+    pdfOrientation.disabled = sizedToImage;
+    pdfLayout.disabled = sizedToImage;
+
+    try {
+      const flat = annotator.getFlattenedCanvas();
+      const plan = SmartPdfExporter.planLayout(flat.width, flat.height, options);
+      const pages = plan.pages.length;
+      const percent = plan.percent >= 99.5
+        ? '100%'
+        : `${plan.percent < 10 ? plan.percent.toFixed(1) : Math.round(plan.percent)}%`;
+      const count = pages === 1 ? '1 page' : `About ${pages} pages`;
+      let note = '';
+      if (!sizedToImage && options.layout === 'fit' && plan.percent < 45) {
+        note = ' Text will be small: the whole image is being fitted onto one sheet.';
       }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = getCleanFilename('webp');
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Downloaded WebP!');
-    }, 'image/webp', 0.92);
+      pdfSummary.textContent = `${count} · image at ${percent} of actual size. Proportions are always preserved.${note}`;
+      pdfSummary.classList.remove('error');
+      btnPdfConfirm.disabled = false;
+    } catch (err) {
+      pdfSummary.textContent = err.message;
+      pdfSummary.classList.add('error');
+      btnPdfConfirm.disabled = true;
+    }
+  }
+
+  [pdfPageSize, pdfOrientation, pdfLayout, pdfMargin].forEach((control) => {
+    control.addEventListener('change', updatePdfSummary);
   });
 
-  // E. Smart-Split Multi-Page PDF
   btnExportPdf.addEventListener('click', () => {
+    updatePdfSummary();
     pdfModal.classList.remove('hidden');
   });
 
@@ -1492,27 +1553,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   btnPdfConfirm.addEventListener('click', async () => {
     pdfModal.classList.add('hidden');
-    showToast('Synthesizing smart-split PDF...');
+    showToast('Building PDF...');
 
     try {
-      const flatCanvas = annotator.getFlattenedCanvas();
-      const pdfBlob = await SmartPdfExporter.exportToPdf(flatCanvas, {
-        size: pdfPageSize.value,
-        orientation: pdfOrientation.value
-      });
-
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = getCleanFilename('pdf');
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Multi-Page PDF Downloaded!');
+      const pdfBlob = await SmartPdfExporter.exportToPdf(annotator.getFlattenedCanvas(), readPdfOptions());
+      ImageExporter.download(pdfBlob, getCleanFilename('pdf'));
+      showToast('PDF Downloaded!');
     } catch (err) {
       console.error('[SnapFlow] PDF export failed:', err);
-      showToast('PDF export error: ' + err.message);
+      showToast('PDF export error: ' + err.message, true);
     }
   });
 
-  console.log('[SnapFlow] Studio Viewer ready with full premium capabilities.');
 });

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snap Flow fixture - region larger than the window</title>
+<style>
+  /* A scrolling document that contains a scroll container taller than the window,
+     starting below the fold, with a page header fixed over it. Capturing the region
+     requires scrolling the region AND the page, and hiding the header above it. */
+  html, body { margin: 0; background: #fff; font: 14px Arial, sans-serif; }
+  #header { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #9333ea; color: #fff;
+    display: flex; align-items: center; padding: 0 16px; font-weight: bold; z-index: 100; }
+  #intro { height: 640px; padding: 80px 20px 0; box-sizing: border-box; background: #e0f2fe; }
+  #panel { margin: 0 60px; height: 1100px; overflow-y: auto; border: 5px solid #0f766e; padding: 0; background: #fff; }
+  #outro { height: 900px; background: #fef3c7; padding: 20px; box-sizing: border-box; }
+</style>
+</head>
+<body>
+<div id="header">PAGE HEADER (fixed, overlaps the region when the page scrolls)</div>
+<div id="intro">Intro section. The scrolling panel starts below the fold.</div>
+<div id="panel"></div>
+<div id="outro">Outro section.</div>
+<script src="ruler.js"></script>
+<script>
+  SFRuler.fill(document.getElementById('panel'), { height: 3000, channel: 120, label: 'Tall panel' });
+</script>
+</body>
+</html>

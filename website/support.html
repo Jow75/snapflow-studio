@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support - Snap Flow Studio</title>
+  <meta name="description" content="Help for Snap Flow Studio: how to contact support, pages that cannot be captured, keyboard shortcuts, where captures are stored and how to remove them.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="icons/icon48.png">
+</head>
+<body>
+  <div class="bg-ambient"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container nav-row">
+      <a href="index.html" class="brand-link">
+        <img src="icons/icon48.png" alt="Snap Flow Studio" class="brand-icon">
+        <span>Snap Flow Studio</span>
+        <span class="brand-tag">Support</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#modes">Capture Modes</a></li>
+          <li><a href="index.html#studio">Editor</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="index.html" class="btn btn-secondary">&larr; Back to Home</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="policy-header">
+    <div class="container">
+      <h1 style="font-size: 2.8rem; margin-bottom: 12px;">Support</h1>
+      <p style="font-size: 1.1rem; color: var(--accent-cyan);">
+        Help with capturing, editing and exporting
+      </p>
+    </div>
+  </section>
+
+  <main class="policy-content container">
+    <section id="contact" class="policy-section">
+      <h2>Contact</h2>
+      <p>
+        For questions, problems or bug reports, email:
+      </p>
+      <div class="support-email-box">
+        <span>✉️</span>
+        <a href="mailto:gmuraguri75@gmail.com" class="support-email-link" style="color: var(--accent-cyan); text-decoration: underline;">gmuraguri75@gmail.com</a>
+      </div>
+      <p>
+        A report is easiest to act on when it says which capture mode you used (Full Page, Visible Area, Selected Area or Scrolling Region), what you expected, what happened instead, and your Chrome version (shown at <code>chrome://version</code>). If the page is public, its address helps too. Please do not send screenshots that contain private information.
+      </p>
+    </section>
+
+    <section id="cannot-capture" class="policy-section">
+      <h2>Pages that cannot be captured</h2>
+      <ul>
+        <li><strong>Chrome's own pages and the Chrome Web Store.</strong> Chrome does not let any extension run on addresses that start with <code>chrome://</code>, on other extensions' pages, or on the Chrome Web Store. The popup shows a message on these pages and the capture buttons are switched off.</li>
+        <li><strong>Files opened from your computer.</strong> To capture a <code>file://</code> page, open <code>chrome://extensions</code>, choose Details for Snap Flow Studio, and turn on "Allow access to file URLs".</li>
+      </ul>
+    </section>
+
+    <section id="tips" class="policy-section">
+      <h2>Getting a good capture</h2>
+      <ul>
+        <li><strong>Keep the tab in front.</strong> Chrome can only photograph the tab that is showing. If you switch tabs during a Full Page or Scrolling Region capture, the capture stops with a message.</li>
+        <li><strong>Scrolling Region.</strong> Choose the mode, move the pointer over the panel you want and click it. Use the up and down arrow keys to widen or narrow the choice when panels are nested. "Capture automatically" scrolls the panel from start to end for you; "Scroll manually" records what you scroll through yourself.</li>
+        <li><strong>Lists that load more as you scroll.</strong> Automatic capture waits for new items and continues. A list that never stops loading is stopped at a time limit, and you can press Enter to stop loading earlier and capture what is there.</li>
+        <li><strong>Very long pages.</strong> A single capture stops at 200 screenshots. The Studio tells you when a capture was shortened.</li>
+        <li><strong>Sticky headers.</strong> "Smart Hide Sticky Headers" in the popup settings keeps a fixed header from repeating down the image. Turn it off if a page looks wrong with it on.</li>
+        <li><strong>Cancel.</strong> Press Esc, or Cancel in the popup, to stop a capture. The page is put back as it was.</li>
+      </ul>
+    </section>
+
+    <section id="shortcuts" class="policy-section">
+      <h2>Keyboard shortcuts</h2>
+      <ul>
+        <li><strong>Alt + Shift + S:</strong> capture the full page.</li>
+        <li><strong>Alt + Shift + V:</strong> capture the visible area.</li>
+      </ul>
+      <p>
+        To change them, open <code>chrome://extensions/shortcuts</code>. If another extension already uses a shortcut, Chrome leaves it unassigned until you set one there.
+      </p>
+    </section>
+
+    <section id="storage" class="policy-section">
+      <h2>Where captures are kept and how to remove them</h2>
+      <ul>
+        <li>Captures are stored on your own computer, inside your Chrome profile. They are not uploaded anywhere.</li>
+        <li>Only your 10 most recent captures are kept. Older ones are deleted automatically when you make a new capture. Closing the Studio tab does not delete a capture.</li>
+        <li>The Studio does not save your edits. Export the image or PDF before closing the tab if you want to keep an edited version.</li>
+        <li>There is no delete button in the extension yet. To remove every stored capture and setting, uninstall the extension at <code>chrome://extensions</code>. You can install it again afterwards.</li>
+      </ul>
+      <p>
+        The full details are in the <a href="privacy.html" style="color: var(--accent-cyan); text-decoration: underline;">Privacy Policy</a>.
+      </p>
+    </section>
+
+    <section class="policy-section">
+      <p style="font-size: 0.88rem; color: var(--text-dim);">
+        Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">BaziQ Hue</a>.
+      </p>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <span>&copy; 2026 Snap Flow Studio. All rights reserved. Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">BaziQ Hue</a>.</span>
+      <a href="index.html" style="color: var(--accent-cyan);">&larr; Back to Homepage</a>
+    </div>
+  </footer>
+</body>
+</html>

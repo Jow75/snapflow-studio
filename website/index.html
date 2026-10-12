@@ -283,7 +283,7 @@
             </li>
             <li>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <span><strong>Smart-Split PDF:</strong> Multi-page PDF generation scans whitespace gutters so text lines are never cut</span>
+              <span><strong>Smart-Split PDF:</strong> Multi-page PDF generation looks for gaps between lines so page breaks avoid cutting through text</span>
             </li>
           </ul>
         </div>
@@ -325,7 +325,7 @@
             <div class="privacy-item-icon">💻</div>
             <div class="privacy-item-text">
               <h4>Local-First Storage</h4>
-              <p>Captures are saved in browser IndexedDB. They exist on your hard drive and are cleared when closed.</p>
+              <p>Captures are saved in browser IndexedDB on your own computer. Only your 10 most recent captures are kept; older ones are deleted automatically.</p>
             </div>
           </div>
           <div class="privacy-item">
@@ -388,7 +388,7 @@
         </div>
         <div class="faq-card">
           <div class="faq-q">Where are screenshots stored and processed?</div>
-          <div class="faq-a">Screenshots are processed entirely in memory and cached in local browser IndexedDB storage on your computer. They are never sent to any remote server or third-party cloud.</div>
+          <div class="faq-a">Screenshots are processed in your browser and saved in local IndexedDB storage on your computer. Only your 10 most recent captures are kept, and closing the Studio tab does not delete them. They are never sent to any remote server or third-party cloud.</div>
         </div>
         <div class="faq-card">
           <div class="faq-q">Does Snap Flow Studio track my browsing history?</div>
@@ -426,7 +426,7 @@
         </div>
 
         <p style="font-size: 0.88rem; color: var(--text-dim);">
-          Direct inquiry channel. Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">BaziQ Hue</a>.
+          More help, including pages that cannot be captured and how to remove stored captures, is on the <a href="support.html" style="color: var(--accent-cyan); text-decoration: underline;">Support page</a>. Snap Flow Studio is a product of <a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener" style="color: var(--accent-cyan); text-decoration: underline;">BaziQ Hue</a>.
         </p>
       </div>
     </div>
@@ -472,9 +472,10 @@
           <h5>Connect</h5>
           <ul class="footer-links-list">
             <li><a href="#" class="cws-install-btn">Chrome Web Store</a></li>
+            <li><a href="support.html">Support</a></li>
             <li><a href="mailto:gmuraguri75@gmail.com">Contact Support</a></li>
             <li><a href="https://www.baziqhue.co.ke" target="_blank" rel="noopener">BaziQ Hue</a></li>
-            <li><a href="https://github.com" target="_blank" rel="noopener">GitHub</a></li>
+            <li><a href="https://github.com/Jow75/snapflow-studio" target="_blank" rel="noopener">GitHub</a></li>
           </ul>
         </div>
       </div>
@@ -496,7 +497,7 @@
       btn.addEventListener('click', (e) => {
         if (CHROME_STORE_URL.includes('PLACEHOLDER')) {
           e.preventDefault();
-          alert('Snap Flow Studio Chrome Web Store package is currently staged for store publication. Load the unpacked extension from the release build folder or check back once the listing is live!');
+          alert('Snap Flow Studio is not on the Chrome Web Store yet. The listing is being prepared, so please check back soon.');
         } else {
           btn.href = CHROME_STORE_URL;
         }

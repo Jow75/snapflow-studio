@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snap Flow fixture - long page</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; }
+  body { font: 14px Arial, sans-serif; }
+  .fixed-top { position: fixed; top: 0; left: 40px; right: 0; height: 50px; background: #b91c1c; color: #fff;
+    display: flex; align-items: center; padding: 0 16px; font-weight: bold; z-index: 50; }
+  .fixed-bottom { position: fixed; bottom: 0; left: 40px; right: 0; height: 44px; background: #1d4ed8; color: #fff;
+    display: flex; align-items: center; padding: 0 16px; font-weight: bold; z-index: 50; }
+  .sticky { position: sticky; top: 0; height: 46px; background: #15803d; color: #fff; display: flex;
+    align-items: center; padding: 0 16px; font-weight: bold; z-index: 40; }
+  .js-header { height: 48px; background: #7e22ce; color: #fff; display: flex; align-items: center;
+    padding: 0 16px; font-weight: bold; }
+  .js-header.stuck { position: fixed; top: 0; left: 40px; right: 0; z-index: 60; }
+  .lazy { display: block; width: 300px; height: 120px; margin: 0; background: #fde68a; }
+  .wide { width: 2400px; height: 60px; background: linear-gradient(90deg, #0ea5e9, #f97316); }
+</style>
+</head>
+<body>
+<script src="ruler.js"></script>
+<script>
+  /**
+   * Query parameters:
+   *   h=N        total document height in CSS px (default 3450)
+   *   fixed=1    viewport-fixed top bar          fixedbottom=1  viewport-fixed bottom bar
+   *   sticky=1   position:sticky bar at the top of the content
+   *   jsheader=1 header that a scroll listener switches to position:fixed (the BaziQ Hue pattern)
+   *   smooth=1   html { scroll-behavior: smooth }
+   *   snap=1     mandatory scroll snapping every 400px
+   *   lazy=N     N lazy images that only load once scrolled into view, each 600ms slow
+   *   grow=N     appends N extra px of content the first time the bottom is approached
+   *   wide=1     an element wider than the viewport (document horizontal overflow)
+   */
+  const q = new URLSearchParams(location.search);
+  const height = parseInt(q.get('h') || '3450', 10);
+
+  if (q.get('smooth')) document.documentElement.style.scrollBehavior = 'smooth';
+  if (q.get('snap')) document.documentElement.style.scrollSnapType = 'y mandatory';
+
+  const content = document.createElement('div');
+  content.id = 'content';
+  document.body.appendChild(content);
+  const wrap = SFRuler.fill(content, { height, channel: 77, label: 'Document' });
+
+  const rows = wrap.lastChild;
+  if (q.get('snap')) {
+    rows.querySelectorAll('.sf-row').forEach((row, i) => {
+      if (i % 10 === 0) row.style.scrollSnapAlign = 'start';
+    });
+  }
+
+  if (q.get('sticky')) {
+    const bar = document.createElement('div');
+    bar.className = 'sticky';
+    bar.id = 'sticky-bar';
+    bar.textContent = 'STICKY BAR (must appear exactly once)';
+    // Replaces the first rows so the document height stays exactly `height`.
+    rows.insertBefore(bar, rows.firstChild);
+    wrap.style.overflow = 'clip';
+  }
+
+  if (q.get('jsheader')) {
+    const header = document.createElement('div');
+    header.className = 'js-header';
+    header.id = 'js-header';
+    header.textContent = 'JS HEADER (becomes fixed after scrolling)';
+    rows.insertBefore(header, rows.firstChild);
+    window.addEventListener('scroll', () => {
+      header.classList.toggle('stuck', window.scrollY > 120);
+    });
+  }
+
+  if (q.get('fixed')) {
+    const bar = document.createElement('div');
+    bar.className = 'fixed-top';
+    bar.id = 'fixed-top';
+    bar.textContent = 'FIXED TOP BAR (must appear exactly once)';
+    document.body.appendChild(bar);
+  }
+
+  if (q.get('fixedbottom')) {
+    const bar = document.createElement('div');
+    bar.className = 'fixed-bottom';
+    bar.id = 'fixed-bottom';
+    bar.textContent = 'FIXED BOTTOM BAR (must appear exactly once)';
+    document.body.appendChild(bar);
+  }
+
+  const lazyCount = parseInt(q.get('lazy') || '0', 10);
+  if (lazyCount) {
+    const all = rows.querySelectorAll('.sf-row');
+    for (let i = 0; i < lazyCount; i++) {
+      const anchor = all[Math.floor(((i + 1) * all.length) / (lazyCount + 1))];
+      const img = document.createElement('img');
+      img.className = 'lazy';
+      img.loading = 'lazy';
+      img.width = 300;
+      img.height = 120;
+      img.src = `/slow-image?ms=600&c=16a34a&i=${i}`;
+      // Overlaid so it does not change the document height.
+      img.style.cssText = 'position:absolute;right:40px;';
+      anchor.style.position = 'relative';
+      anchor.style.overflow = 'visible';
+      anchor.appendChild(img);
+    }
+  }
+
+  const grow = parseInt(q.get('grow') || '0', 10);
+  if (grow) {
+    let grown = false;
+    window.addEventListener('scroll', () => {
+      if (grown) return;
+      if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 200) {
+        grown = true;
+        const extra = document.createElement('div');
+        extra.id = 'grown';
+        document.body.appendChild(extra);
+        const w = SFRuler.fill(extra, { height: grow, channel: 78, label: 'Late content' });
+        w.dataset.late = '1';
+      }
+    });
+  }
+
+  // shapes=1: a 200px square and a 300px circle with known geometry. Any export that
+  // stretches the image turns the square into a rectangle and the circle into an ellipse.
+  if (q.get('shapes')) {
+    document.body.style.position = 'relative';
+    const square = document.createElement('div');
+    square.id = 'square';
+    square.style.cssText = 'position:absolute;left:520px;top:120px;width:200px;height:200px;background:#000000;';
+    const circle = document.createElement('div');
+    circle.id = 'circle';
+    circle.style.cssText = 'position:absolute;left:800px;top:70px;width:300px;height:300px;border-radius:50%;background:#e11d48;';
+    const grid = document.createElement('div');
+    grid.id = 'grid';
+    grid.style.cssText = 'position:absolute;left:520px;top:400px;width:580px;height:120px;' +
+      'background-image:repeating-linear-gradient(90deg,#0f172a 0 1px,transparent 1px 20px),' +
+      'repeating-linear-gradient(0deg,#0f172a 0 1px,transparent 1px 20px);background-color:#ffffff;';
+    const secret = document.createElement('div');
+    secret.id = 'secret';
+    secret.style.cssText = 'position:absolute;left:520px;top:560px;width:420px;height:60px;background:#facc15;' +
+      'font:bold 22px Arial;line-height:60px;padding-left:12px;color:#1f2937;';
+    secret.textContent = 'SECRET ACCOUNT 4111-1111-1111';
+    document.body.append(square, circle, grid, secret);
+  }
+
+  if (q.get('wide')) {
+    const wide = document.createElement('div');
+    wide.className = 'wide';
+    wide.style.cssText += 'position:absolute;top:200px;left:300px;';
+    document.body.style.position = 'relative';
+    document.body.appendChild(wide);
+  }
+</script>
+</body>
+</html>

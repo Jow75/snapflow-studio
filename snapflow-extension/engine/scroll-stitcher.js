@@ -1,251 +1,190 @@
 /**
- * SnapFlow - Scroll Stitcher & Coordinate Mathematics Engine (Reliability 1.0)
- * Manages viewport step calculations, high-DPI (DPR) scaling, slice coordinate offsets,
- * footer remainder math, large-canvas memory bounds protection, and tiled buffers.
+ * SnapFlow - Scroll Stitcher & Coordinate Mathematics Engine
+ *
+ * One compositor serves Full Page and Scrolling Region. For every screenshot the
+ * capture engine records which rectangle of that screenshot holds new content and
+ * where it belongs in the finished image. Both rectangles are in device pixels
+ * (the screenshot's own pixels) and are derived from the scroll position the
+ * browser actually reached, never the one requested.
+ *
+ * Because source and destination are whole device pixels on the same grid, a paint
+ * is a 1:1 copy: nothing is resampled, and two paints that share an edge cannot
+ * leave a gap or repeat a row. The only resize ever applied is one uniform
+ * reduction of the whole canvas when the image is too large for the browser.
  */
 
 class ScrollStitcher {
   /**
-   * Chromium safe limits for HTML5 canvas dimensions & memory
+   * Chromium refuses canvases above 32,767 px per side or 268,435,456 px in area.
+   * Anything larger is scaled down uniformly and reported, never truncated.
    */
-  static MAX_CANVAS_DIMENSION = 30000; // Safe threshold under 32,767px limit
-  static MAX_CANVAS_AREA = 250000000;  // Safe threshold under ~268M pixel ceiling
-  static BYTES_PER_PIXEL = 4;          // RGBA 32-bit
-  static MEMORY_SAFETY_FACTOR = 1.5;   // Browser canvas buffer overhead
-  static MAX_SAFE_BUFFER_BYTES = 250 * 1024 * 1024; // 250MB threshold for tiling
+  static MAX_CANVAS_DIMENSION = 32000;
+  static MAX_CANVAS_AREA = 250000000;
 
   /**
-   * Calculates estimated memory required for a canvas buffer in bytes.
+   * CSS-to-device scale of a screenshot. The reported devicePixelRatio is used when
+   * the bitmap agrees with it (it is exact); otherwise the bitmap is trusted.
+   * Used where a rectangle the user drew in CSS pixels must be mapped onto a bitmap.
    */
-  static estimateMemoryBytes(width, height) {
-    return Math.round(width * height * this.BYTES_PER_PIXEL * this.MEMORY_SAFETY_FACTOR);
+  static resolveScale(reportedDpr, imageWidth, viewportWidthCss) {
+    const measured = viewportWidthCss > 0 ? imageWidth / viewportWidthCss : 0;
+    if (!(measured > 0)) return reportedDpr > 0 ? reportedDpr : 1;
+    if (reportedDpr > 0 && Math.abs(measured - reportedDpr) <= reportedDpr * 0.01) return reportedDpr;
+    return measured;
   }
 
   /**
-   * Plans the discrete 2D slice steps required to cover the scrollable page or region.
-   * Handles footer/right remainder offsets to avoid duplicate content rendering.
+   * The overlap rule shared by every vertical capture. Given how many rows are
+   * already written (`covered`) and a frame showing rows [start, start + length),
+   * returns the part of that frame that is new, or null if it adds nothing.
    *
-   * @param {Object} metrics Page geometry { scrollWidth, scrollHeight, viewportWidth, viewportHeight, dpr }
-   * @returns {Object} Slicing plan with steps, canvas dimensions, memory estimate, and tiling flags
+   * @returns {{ offset: number, count: number, dest: number }|null}
+   *          offset  rows to skip at the top of the frame (already captured)
+   *          count   new rows to copy
+   *          dest    row in the finished image where they start
    */
-  static planSlices(metrics) {
-    const {
-      scrollWidth,
-      scrollHeight,
-      viewportWidth,
-      viewportHeight,
-      dpr = 1,
-      scrollX = 0,
-      scrollY = 0,
-      isElement = false
-    } = metrics;
+  static newRows(covered, start, length) {
+    const from = Math.max(covered, start);
+    const count = start + length - from;
+    return count > 0 ? { offset: from - start, count, dest: from } : null;
+  }
 
-    const totalWidthDevice = Math.round(scrollWidth * dpr);
-    const totalHeightDevice = Math.round(scrollHeight * dpr);
-    const viewportWidthDevice = Math.round(viewportWidth * dpr);
-    const viewportHeightDevice = Math.round(viewportHeight * dpr);
+  /**
+   * Computes the stitched canvas size, shrinking uniformly when the native size
+   * would exceed what the browser can allocate.
+   *
+   * @param {{width:number,height:number}} plan native size in device px
+   * @returns {{ width, height, nativeWidth, nativeHeight, shrink }}
+   */
+  static planOutput(plan) {
+    const nativeWidth = Math.max(1, Math.round(plan.width));
+    const nativeHeight = Math.max(1, Math.round(plan.height));
 
-    const slices = [];
-    let currentY = 0;
-    let canvasY = 0;
-
-    while (currentY < scrollHeight) {
-      const remainingHeight = scrollHeight - currentY;
-
-      if (remainingHeight <= viewportHeight) {
-        // Last slice: remainder offset
-        // Scroll so the bottom aligns with bottom of viewport
-        const scrollTargetY = Math.max(0, scrollHeight - viewportHeight);
-        const remainderHeightCss = scrollHeight - currentY;
-        // Ensure destY + remainderHeightDevice exactly reaches totalHeightDevice
-        const remainderHeightDevice = Math.max(1, totalHeightDevice - canvasY);
-
-        // In captured viewport, new content starts from bottom minus remainder
-        const sourceClipY = Math.max(0, viewportHeightDevice - remainderHeightDevice);
-
-        slices.push({
-          index: slices.length,
-          scrollX: 0,
-          scrollY: scrollTargetY,
-          sourceX: 0,
-          sourceY: sourceClipY,
-          sourceWidth: viewportWidthDevice,
-          sourceHeight: remainderHeightDevice,
-          destX: 0,
-          destY: canvasY,
-          destWidth: viewportWidthDevice,
-          destHeight: remainderHeightDevice,
-          isRemainder: true,
-          remainderCss: remainderHeightCss
-        });
-
-        canvasY += remainderHeightDevice;
-        break;
-      } else {
-        // Standard full viewport slice
-        slices.push({
-          index: slices.length,
-          scrollX: 0,
-          scrollY: currentY,
-          sourceX: 0,
-          sourceY: 0,
-          sourceWidth: viewportWidthDevice,
-          sourceHeight: viewportHeightDevice,
-          destX: 0,
-          destY: canvasY,
-          destWidth: viewportWidthDevice,
-          destHeight: viewportHeightDevice,
-          isRemainder: false,
-          remainderCss: viewportHeight
-        });
-
-        currentY += viewportHeight;
-        canvasY += viewportHeightDevice;
-      }
+    let shrink = 1;
+    const longest = Math.max(nativeWidth, nativeHeight);
+    if (longest > this.MAX_CANVAS_DIMENSION) {
+      shrink = Math.min(shrink, this.MAX_CANVAS_DIMENSION / longest);
     }
-
-    // Memory assessment
-    const estimatedMemoryBytes = this.estimateMemoryBytes(viewportWidthDevice, canvasY);
-    const requiresTiling =
-      canvasY > this.MAX_CANVAS_DIMENSION ||
-      viewportWidthDevice > this.MAX_CANVAS_DIMENSION ||
-      (viewportWidthDevice * canvasY) > this.MAX_CANVAS_AREA ||
-      estimatedMemoryBytes > this.MAX_SAFE_BUFFER_BYTES;
-
-    // Tiling plan if memory protection engaged
-    let tiles = [];
-    if (requiresTiling) {
-      const tileHeight = Math.min(this.MAX_CANVAS_DIMENSION / 2, 10000);
-      let tileStart = 0;
-      while (tileStart < canvasY) {
-        const currentTileHeight = Math.min(tileHeight, canvasY - tileStart);
-        tiles.push({
-          tileIndex: tiles.length,
-          startY: tileStart,
-          height: currentTileHeight,
-          width: viewportWidthDevice
-        });
-        tileStart += currentTileHeight;
-      }
+    if (nativeWidth * nativeHeight * shrink * shrink > this.MAX_CANVAS_AREA) {
+      shrink = Math.min(shrink, Math.sqrt(this.MAX_CANVAS_AREA / (nativeWidth * nativeHeight)));
     }
 
     return {
-      slices,
-      totalWidth: viewportWidthDevice,
-      totalHeight: canvasY,
-      scrollWidthCss: scrollWidth,
-      scrollHeightCss: scrollHeight,
-      viewportWidthCss: viewportWidth,
-      viewportHeightCss: viewportHeight,
-      dpr,
-      estimatedMemoryBytes,
-      requiresTiling,
-      tiles
+      width: Math.max(1, Math.round(nativeWidth * shrink)),
+      height: Math.max(1, Math.round(nativeHeight * shrink)),
+      nativeWidth,
+      nativeHeight,
+      shrink
     };
   }
 
   /**
-   * Plans slicing steps for a specific scrollable element container (Scrolling Region mode).
+   * Converts one paint instruction into source and destination rectangles, clamped
+   * to the bitmap and the canvas.
+   *
+   * @param {Object} paint  { sx, sy, sw, sh } in the screenshot, { dx, dy } in the
+   *                        finished image; all device px
+   * @param {Object} plan   { originX, originY } subtracted from dx/dy
+   * @param {number} shrink uniform reduction of the whole canvas (1 = none)
+   * @param {{width:number,height:number}} image  bitmap size
+   * @param {{width:number,height:number}} canvas canvas size
+   * @returns {Object|null} rectangles, or null when nothing remains after clamping
    */
-  static planElementSlices(elementMetrics) {
-    const {
-      x,
-      y,
-      width,
-      height,
-      scrollWidth,
-      scrollHeight,
-      clientWidth,
-      clientHeight,
-      dpr = 1
-    } = elementMetrics;
+  static mapPaint(paint, plan, shrink, image, canvas) {
+    let sx0 = Math.round(paint.sx);
+    let sy0 = Math.round(paint.sy);
+    let sx1 = sx0 + Math.round(paint.sw);
+    let sy1 = sy0 + Math.round(paint.sh);
+    let dx0 = Math.round(paint.dx - (plan.originX || 0));
+    let dy0 = Math.round(paint.dy - (plan.originY || 0));
 
-    const totalWidthDevice = Math.round(scrollWidth * dpr);
-    const totalHeightDevice = Math.round(scrollHeight * dpr);
-    const clientWidthDevice = Math.round(clientWidth * dpr);
-    const clientHeightDevice = Math.round(clientHeight * dpr);
-    const elemXDevice = Math.round(x * dpr);
-    const elemYDevice = Math.round(y * dpr);
+    // Clamp in native pixels, moving source and destination together, so a paint
+    // that runs past an edge is cropped rather than squeezed.
+    if (sx0 < 0) { dx0 -= sx0; sx0 = 0; }
+    if (sy0 < 0) { dy0 -= sy0; sy0 = 0; }
+    if (dx0 < 0) { sx0 -= dx0; dx0 = 0; }
+    if (dy0 < 0) { sy0 -= dy0; dy0 = 0; }
+    sx1 = Math.min(sx1, image.width);
+    sy1 = Math.min(sy1, image.height);
 
-    const slices = [];
-    let currentScrollY = 0;
-    let canvasY = 0;
+    let sw = sx1 - sx0;
+    let sh = sy1 - sy0;
+    const nativeWidth = canvas.width / shrink;
+    const nativeHeight = canvas.height / shrink;
+    if (shrink === 1) {
+      sw = Math.min(sw, canvas.width - dx0);
+      sh = Math.min(sh, canvas.height - dy0);
+    } else {
+      sw = Math.min(sw, Math.ceil(nativeWidth - dx0));
+      sh = Math.min(sh, Math.ceil(nativeHeight - dy0));
+    }
+    if (sw <= 0 || sh <= 0) return null;
 
-    while (currentScrollY < scrollHeight) {
-      const remainingHeight = scrollHeight - currentScrollY;
+    if (shrink === 1) {
+      return { sx: sx0, sy: sy0, sw, sh, dx: dx0, dy: dy0, dw: sw, dh: sh };
+    }
 
-      if (remainingHeight <= clientHeight) {
-        // Last remainder step for element
-        const targetScrollY = Math.max(0, scrollHeight - clientHeight);
-        const remainderHeightCss = scrollHeight - currentScrollY;
-        const remainderHeightDevice = Math.max(1, totalHeightDevice - canvasY);
-        const sourceClipY = Math.max(0, clientHeightDevice - remainderHeightDevice);
+    // Reduced canvas: each edge is scaled from its absolute native position, so
+    // neighbouring paints still meet on the same canvas row.
+    const dx = Math.round(dx0 * shrink);
+    const dy = Math.round(dy0 * shrink);
+    const dw = Math.min(canvas.width, Math.round((dx0 + sw) * shrink)) - dx;
+    const dh = Math.min(canvas.height, Math.round((dy0 + sh) * shrink)) - dy;
+    if (dw <= 0 || dh <= 0) return null;
+    return { sx: sx0, sy: sy0, sw, sh, dx, dy, dw, dh };
+  }
 
-        slices.push({
-          index: slices.length,
-          scrollTop: targetScrollY,
-          scrollLeft: 0,
-          cropX: elemXDevice,
-          cropY: elemYDevice,
-          cropWidth: clientWidthDevice,
-          cropHeight: clientHeightDevice,
-          sourceX: 0,
-          sourceY: sourceClipY,
-          sourceWidth: clientWidthDevice,
-          sourceHeight: remainderHeightDevice,
-          destX: 0,
-          destY: canvasY,
-          destWidth: clientWidthDevice,
-          destHeight: remainderHeightDevice,
-          isRemainder: true,
-          remainderCss: remainderHeightCss
-        });
+  /**
+   * Composites captured frames into one canvas.
+   *
+   * @param {Array<Object>} frames  [{ paints: [...] }] in capture order
+   * @param {Object} plan           { width, height, originX, originY, background } in device px
+   * @param {Object} io
+   * @param {(index:number) => Promise<{width:number,height:number}>} io.loadFrameImage
+   * @param {(image:Object) => void} [io.releaseFrameImage]
+   * @param {(done:number, total:number) => void} [io.onProgress]
+   * @returns {Promise<{ canvas, shrink, nativeWidth, nativeHeight }>}
+   */
+  static async composeFrames(frames, plan, io) {
+    if (!frames || frames.length === 0) throw new Error('Capture contains no frames.');
 
-        canvasY += remainderHeightDevice;
-        break;
-      } else {
-        slices.push({
-          index: slices.length,
-          scrollTop: currentScrollY,
-          scrollLeft: 0,
-          cropX: elemXDevice,
-          cropY: elemYDevice,
-          cropWidth: clientWidthDevice,
-          cropHeight: clientHeightDevice,
-          sourceX: 0,
-          sourceY: 0,
-          sourceWidth: clientWidthDevice,
-          sourceHeight: clientHeightDevice,
-          destX: 0,
-          destY: canvasY,
-          destWidth: clientWidthDevice,
-          destHeight: clientHeightDevice,
-          isRemainder: false,
-          remainderCss: clientHeight
-        });
+    const output = this.planOutput(plan);
+    const canvas = document.createElement('canvas');
+    canvas.width = output.width;
+    canvas.height = output.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx || canvas.width !== output.width || canvas.height !== output.height) {
+      throw new Error(`The browser could not allocate a ${output.width} × ${output.height} px canvas.`);
+    }
+    ctx.fillStyle = plan.background || '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        currentScrollY += clientHeight;
-        canvasY += clientHeightDevice;
+    // 1:1 copies must stay untouched; only the whole-canvas reduction is filtered.
+    ctx.imageSmoothingEnabled = output.shrink !== 1;
+    if (output.shrink !== 1) ctx.imageSmoothingQuality = 'high';
+
+    for (let i = 0; i < frames.length; i++) {
+      const image = await io.loadFrameImage(i);
+      for (const paint of frames[i].paints || []) {
+        const r = this.mapPaint(paint, plan, output.shrink, image, canvas);
+        if (r) ctx.drawImage(image, r.sx, r.sy, r.sw, r.sh, r.dx, r.dy, r.dw, r.dh);
       }
+      if (io.releaseFrameImage) io.releaseFrameImage(image);
+      if (io.onProgress) io.onProgress(i + 1, frames.length);
     }
 
     return {
-      slices,
-      totalWidth: clientWidthDevice,
-      totalHeight: canvasY,
-      scrollWidthCss: scrollWidth,
-      scrollHeightCss: scrollHeight,
-      clientWidthCss: clientWidth,
-      clientHeightCss: clientHeight,
-      dpr,
-      isElement: true
+      canvas,
+      shrink: output.shrink,
+      nativeWidth: output.nativeWidth,
+      nativeHeight: output.nativeHeight
     };
   }
 
   /**
-   * Helper to load an image from data URL into an HTMLImageElement with safety timeout.
+   * Loads an image from a data URL with a safety timeout.
    */
-  static loadImage(dataUrl, timeoutMs = 8000) {
+  static loadImage(dataUrl, timeoutMs = 15000) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       let timedOut = false;
@@ -260,10 +199,10 @@ class ScrollStitcher {
           resolve(img);
         }
       };
-      img.onerror = (err) => {
+      img.onerror = () => {
         if (!timedOut) {
           clearTimeout(timer);
-          reject(new Error('Failed to decode captured slice image: ' + err));
+          reject(new Error('Failed to decode captured image.'));
         }
       };
       img.src = dataUrl;
@@ -271,207 +210,90 @@ class ScrollStitcher {
   }
 
   /**
-   * Stitches an array of captured slice images onto an HTML5 Canvas.
-   * Completely eliminates white seam gaps through pixel-exact blitting,
-   * edge clamping, and seamless slice alignment.
+   * Crops a rectangle out of a viewport screenshot (Selected Area and static elements).
+   * The canvas takes the size of the pixels actually available, so a selection that
+   * runs past the edge of the screenshot is trimmed instead of stretched.
    *
-   * @param {Array<{ dataUrl: string, sliceInfo: Object }>} capturedSlices
-   * @param {Object} plan Slicing plan generated by planSlices()
-   * @returns {Promise<HTMLCanvasElement>} Stitched result canvas
+   * @param {{width:number,height:number}} image decoded screenshot
+   * @param {Object} rect { x, y, width, height } in device px
+   * @returns {HTMLCanvasElement}
    */
-  static async stitchToCanvas(capturedSlices, plan) {
+  static cropToCanvas(image, rect) {
+    const sx = Math.max(0, Math.min(image.width - 1, Math.round(rect.x)));
+    const sy = Math.max(0, Math.min(image.height - 1, Math.round(rect.y)));
+    const sw = Math.max(1, Math.min(image.width - sx, Math.round(rect.x + rect.width) - Math.round(rect.x)));
+    const sh = Math.max(1, Math.min(image.height - sy, Math.round(rect.y + rect.height) - Math.round(rect.y)));
+
     const canvas = document.createElement('canvas');
-    canvas.width = plan.totalWidth;
-    canvas.height = plan.totalHeight;
-    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
-
-    // Pixel-perfect blitting: disable image smoothing to prevent bilinear edge interpolation
-    ctx.imageSmoothingEnabled = false;
-
-    const dpr = plan.dpr || 1;
-    const scrollHeightCss = plan.scrollHeightCss || Math.round(plan.totalHeight / dpr);
-
-    let docYRepresented = 0;
-    let canvasYWritten = 0;
-
-    for (let i = 0; i < capturedSlices.length; i++) {
-      const sliceItem = capturedSlices[i];
-      const sliceInfo = sliceItem.sliceInfo || {};
-      const img = await this.loadImage(sliceItem.dataUrl);
-
-      // Determine actual document scroll coordinate for this frame
-      const hasActualY = (sliceItem.actualY !== undefined && sliceItem.actualY !== null);
-      const frameActualY = hasActualY
-        ? sliceItem.actualY
-        : (sliceInfo.scrollY !== undefined ? sliceInfo.scrollY : docYRepresented);
-
-      const frameHeightDevice = img.height;
-      let sourceClipY = 0;
-      let retainedHeightDevice = frameHeightDevice;
-      let destY = canvasYWritten;
-
-      if (i === 0) {
-        // First frame: represents document [0, frameHeightCss)
-        sourceClipY = sliceInfo.sourceY || 0;
-        retainedHeightDevice = (sliceInfo.sourceHeight && !sliceInfo.isRemainder)
-          ? sliceInfo.sourceHeight
-          : Math.min(frameHeightDevice, plan.totalHeight);
-        destY = 0;
-
-        docYRepresented = frameActualY + (retainedHeightDevice / dpr);
-        canvasYWritten = retainedHeightDevice;
-      } else {
-        // If actual scroll position is tracked or consecutive frame overlaps
-        if (hasActualY) {
-          // Frame covers document [frameActualY, frameActualY + (frameHeightDevice / dpr))
-          const overlapCss = Math.max(0, docYRepresented - frameActualY);
-          const overlapDevice = Math.round(overlapCss * dpr);
-
-          sourceClipY = Math.min(frameHeightDevice - 1, overlapDevice);
-
-          // Calculate remaining document extent to cover
-          const remainingDocHeightDevice = Math.max(0, plan.totalHeight - canvasYWritten);
-          retainedHeightDevice = Math.min(
-            frameHeightDevice - sourceClipY,
-            remainingDocHeightDevice
-          );
-
-          destY = canvasYWritten;
-          docYRepresented += (retainedHeightDevice / dpr);
-          canvasYWritten += retainedHeightDevice;
-        } else if (sliceInfo.isRemainder) {
-          // Pre-planned remainder slice
-          sourceClipY = sliceInfo.sourceY;
-          retainedHeightDevice = sliceInfo.sourceHeight;
-          destY = sliceInfo.destY;
-          docYRepresented += (retainedHeightDevice / dpr);
-          canvasYWritten = destY + retainedHeightDevice;
-        } else {
-          // Standard full viewport slice
-          sourceClipY = sliceInfo.sourceY || 0;
-          retainedHeightDevice = sliceInfo.sourceHeight || frameHeightDevice;
-          destY = sliceInfo.destY !== undefined ? sliceInfo.destY : canvasYWritten;
-          docYRepresented += (retainedHeightDevice / dpr);
-          canvasYWritten = destY + retainedHeightDevice;
-        }
-      }
-
-      // Clamp source bounds within actual decoded image dimensions
-      const sourceX = Math.max(0, Math.min(img.width - 1, sliceInfo.sourceX || 0));
-      const sourceY = Math.max(0, Math.min(img.height - 1, sourceClipY));
-      const sourceWidth = Math.min(sliceInfo.sourceWidth || img.width, img.width - sourceX);
-      const sourceHeight = Math.min(retainedHeightDevice, img.height - sourceY);
-
-      const destX = sliceInfo.destX || 0;
-      const destWidth = sliceInfo.destWidth || sourceWidth;
-      const destHeight = sourceHeight;
-
-      if (sourceWidth > 0 && sourceHeight > 0 && destWidth > 0 && destHeight > 0) {
-        ctx.drawImage(
-          img,
-          sourceX,
-          sourceY,
-          sourceWidth,
-          sourceHeight,
-          destX,
-          destY,
-          destWidth,
-          destHeight
-        );
-      }
-    }
-
-    return canvas;
-  }
-
-  /**
-   * Stitches scrolling region element slices into a complete image of the scrollable container.
-   *
-   * @param {Array<{ dataUrl: string, sliceInfo: Object, elementRect?: Object }>} capturedSlices
-   * @param {Object} plan Element slicing plan from planElementSlices()
-   * @returns {Promise<HTMLCanvasElement>} Stitched element canvas
-   */
-  static async stitchElementToCanvas(capturedSlices, plan) {
-    const canvas = document.createElement('canvas');
-    canvas.width = plan.totalWidth;
-    canvas.height = plan.totalHeight;
+    canvas.width = sw;
+    canvas.height = sh;
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
-
-    for (let i = 0; i < capturedSlices.length; i++) {
-      const { dataUrl, sliceInfo } = capturedSlices[i];
-      const img = await this.loadImage(dataUrl);
-
-      // 1. Crop element rectangle from visible tab screenshot
-      const cropX = Math.max(0, Math.min(img.width - 1, sliceInfo.cropX));
-      const cropY = Math.max(0, Math.min(img.height - 1, sliceInfo.cropY));
-      const cropW = Math.min(sliceInfo.cropWidth, img.width - cropX);
-      const cropH = Math.min(sliceInfo.cropHeight, img.height - cropY);
-
-      // Create temporary offscreen slice canvas
-      const sliceCanvas = document.createElement('canvas');
-      sliceCanvas.width = cropW;
-      sliceCanvas.height = cropH;
-      const sCtx = sliceCanvas.getContext('2d');
-      sCtx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-
-      // 2. Draw relevant portion (handling remainder if last slice) onto destination canvas
-      const sX = sliceInfo.sourceX || 0;
-      const sY = sliceInfo.sourceY || 0;
-      const sW = Math.min(sliceInfo.sourceWidth, cropW - sX);
-      const sH = Math.min(sliceInfo.sourceHeight, cropH - sY);
-
-      ctx.drawImage(
-        sliceCanvas,
-        sX,
-        sY,
-        sW,
-        sH,
-        sliceInfo.destX,
-        sliceInfo.destY,
-        sliceInfo.destWidth,
-        sliceInfo.destHeight
-      );
-    }
-
-    return canvas;
-  }
-
-  /**
-   * Crops a specific region from a captured full-viewport image.
-   *
-   * @param {string} dataUrl Viewport image data URL
-   * @param {Object} cropArea { x, y, width, height } in device pixels
-   * @returns {Promise<HTMLCanvasElement>} Cropped canvas
-   */
-  static async cropImage(dataUrl, cropArea) {
-    const img = await this.loadImage(dataUrl);
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(cropArea.width));
-    canvas.height = Math.max(1, Math.round(cropArea.height));
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-
-    const sx = Math.max(0, Math.min(img.width - 1, Math.round(cropArea.x)));
-    const sy = Math.max(0, Math.min(img.height - 1, Math.round(cropArea.y)));
-    const sw = Math.min(img.width - sx, Math.max(1, Math.round(cropArea.width)));
-    const sh = Math.min(img.height - sy, Math.max(1, Math.round(cropArea.height)));
-
-    ctx.drawImage(
-      img,
-      sx,
-      sy,
-      sw,
-      sh,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
+    ctx.drawImage(image, sx, sy, sw, sh, 0, 0, sw, sh);
     return canvas;
   }
 }
+
+/**
+ * Sorted set of half-open [start, end) ranges. Tracks which part of a scrollable
+ * extent has already been captured so no row is recorded twice and gaps are known.
+ */
+class IntervalSet {
+  constructor() {
+    this.ranges = [];
+  }
+
+  add(start, end) {
+    if (!(end > start)) return;
+    const merged = [];
+    let s = start;
+    let e = end;
+    for (const [a, b] of this.ranges) {
+      if (b < s || a > e) {
+        merged.push([a, b]);
+      } else {
+        s = Math.min(s, a);
+        e = Math.max(e, b);
+      }
+    }
+    merged.push([s, e]);
+    merged.sort((p, q) => p[0] - q[0]);
+    this.ranges = merged;
+  }
+
+  /** Parts of [start, end) that are not covered yet. Slivers below `epsilon` are ignored. */
+  missing(start, end, epsilon = 0.5) {
+    const gaps = [];
+    let cursor = start;
+    for (const [a, b] of this.ranges) {
+      if (b <= cursor) continue;
+      if (a >= end) break;
+      if (a > cursor) gaps.push([cursor, Math.min(a, end)]);
+      cursor = Math.max(cursor, b);
+      if (cursor >= end) break;
+    }
+    if (cursor < end) gaps.push([cursor, end]);
+    return gaps.filter(([a, b]) => b - a > epsilon);
+  }
+
+  get min() {
+    return this.ranges.length ? this.ranges[0][0] : 0;
+  }
+
+  get max() {
+    return this.ranges.length ? this.ranges[this.ranges.length - 1][1] : 0;
+  }
+
+  get total() {
+    return this.ranges.reduce((sum, [a, b]) => sum + (b - a), 0);
+  }
+
+  get isEmpty() {
+    return this.ranges.length === 0;
+  }
+}
+
+ScrollStitcher.IntervalSet = IntervalSet;
 
 // Export for module/worker or window context
 if (typeof module !== 'undefined' && module.exports) {

@@ -501,6 +501,9 @@ class StudioAnnotator {
       this.currentPath = [{ x: coords.x, y: coords.y }];
     } else if (this.currentTool === 'text') {
       this.isDrawing = false;
+      // Otherwise the browser completes this press by moving focus to the page, which
+      // closes the new text box before anything can be typed into it.
+      e.preventDefault();
       this.createInlineTextEditor(coords.x, coords.y);
     } else if (this.currentTool === 'emoji') {
       this.isDrawing = false;
@@ -738,7 +741,11 @@ class StudioAnnotator {
     input.focus();
     this.textEditorEl = input;
 
+    // Removing the box makes it lose focus, which would otherwise finish it a second time.
+    let closed = false;
     const finalize = () => {
+      if (closed) return;
+      closed = true;
       const text = input.value.trim();
       input.remove();
       this.textEditorEl = null;
@@ -765,6 +772,7 @@ class StudioAnnotator {
       if (e.key === 'Enter') {
         finalize();
       } else if (e.key === 'Escape') {
+        closed = true;
         input.remove();
         this.textEditorEl = null;
       }
@@ -798,7 +806,10 @@ class StudioAnnotator {
     input.select();
     this.textEditorEl = input;
 
+    let closed = false;
     const finalize = () => {
+      if (closed) return;
+      closed = true;
       const newText = input.value.trim();
       input.remove();
       this.textEditorEl = null;
@@ -813,6 +824,7 @@ class StudioAnnotator {
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') finalize();
       else if (e.key === 'Escape') {
+        closed = true;
         input.remove();
         this.textEditorEl = null;
       }
@@ -1283,9 +1295,10 @@ class StudioAnnotator {
       ctx.fillRect(0, 0, w, bannerH);
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1;
+      // The 1px rule sits on the banner's own last row, never on the screenshot's first.
       ctx.beginPath();
-      ctx.moveTo(0, bannerH);
-      ctx.lineTo(w, bannerH);
+      ctx.moveTo(0, bannerH - 0.5);
+      ctx.lineTo(w, bannerH - 0.5);
       ctx.stroke();
 
       // Traffic light buttons
@@ -1317,7 +1330,7 @@ class StudioAnnotator {
       ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'left';
-      const cleanUrl = this.truncateText(ctx, url || 'https://snapflowstudio.app', pillW - 36);
+      const cleanUrl = this.truncateText(ctx, url || 'https://snapflow-studio-app.netlify.app', pillW - 36);
       ctx.fillText(`🔒  ${cleanUrl}`, pillX + 12, pillY + pillH / 2);
       ctx.restore();
       return;
@@ -1336,9 +1349,11 @@ class StudioAnnotator {
       ctx.fillRect(0, y, w, bannerH);
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1;
+      // The 1px rule is drawn on the banner's own edge row, never on the screenshot.
+      const ruleY = y === 0 ? bannerH - 0.5 : y + 0.5;
       ctx.beginPath();
-      ctx.moveTo(0, y === 0 ? bannerH : y);
-      ctx.lineTo(w, y === 0 ? bannerH : y);
+      ctx.moveTo(0, ruleY);
+      ctx.lineTo(w, ruleY);
       ctx.stroke();
 
       const centerY = y + bannerH / 2;
@@ -1670,6 +1685,8 @@ class StudioAnnotator {
     ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
     ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
     ctx.closePath();
+    // The head belongs to the line, so it takes the line's colour, not the shape fill colour.
+    ctx.fillStyle = ctx.strokeStyle;
     ctx.fill();
   }
 

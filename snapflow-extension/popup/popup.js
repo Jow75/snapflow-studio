@@ -131,7 +131,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       defaultFormat: settingDefaultFormat.value || 'png'
     };
 
-    // If visible or full-page, show progress UI
+    errorBanner.classList.add('hidden');
+
+    // Full-page captures take several frames, so show progress
     if (mode === 'full') {
       captureActions.classList.add('hidden');
       captureProgressView.classList.remove('hidden');
@@ -184,6 +186,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (message.action === 'CAPTURE_ERROR') {
       showError(message.error || 'An error occurred during capture.');
       resetProgressView();
+    } else if (message.action === 'CAPTURE_CANCELLED') {
+      resetProgressView();
     }
   });
 
@@ -202,8 +206,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Navigation Actions
   const SITE_CONFIG = {
-    WEBSITE_URL: 'https://snapflowstudio.app/',
-    PRIVACY_URL: 'https://snapflowstudio.app/privacy.html',
+    WEBSITE_URL: 'https://snapflow-studio-app.netlify.app/',
+    PRIVACY_URL: 'https://snapflow-studio-app.netlify.app/privacy.html',
     SUPPORT_URL: 'mailto:gmuraguri75@gmail.com',
     PARENT_URL: 'https://www.baziqhue.co.ke'
   };

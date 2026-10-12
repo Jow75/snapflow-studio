@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Team Workspace - Website relaunch</title>
+<!--
+  Demonstration page for the Chrome Web Store screenshots. An invented team
+  workspace whose message thread scrolls on its own while the page stays still,
+  which is what the Scrolling Region mode is for. It imitates no real product,
+  and the people and messages are made up.
+-->
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; font: 14px/1.5 "Segoe UI", Arial, sans-serif; color: #1f2937; background: #eef2f7; }
+  #shell { display: grid; grid-template-columns: 230px 1fr 270px; grid-template-rows: 56px 1fr 64px; height: 100vh; }
+  #topbar { grid-column: 1 / 4; background: #1e293b; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  #topbar b { font-size: 16px; }
+  #topbar span { font-size: 13px; opacity: .8; }
+  #sidebar { grid-row: 2 / 4; background: #273449; color: #cbd5e1; padding: 16px 0; }
+  #sidebar h5 { margin: 0 0 8px; padding: 0 18px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #94a3b8; }
+  #sidebar div { padding: 7px 18px; }
+  #sidebar div.on { background: #3b82f6; color: #fff; font-weight: 600; }
+  #thread { grid-column: 2; grid-row: 2; overflow-y: auto; background: #fff; padding: 8px 0 16px; }
+  .day { text-align: center; font-size: 12px; color: #64748b; margin: 16px 0 6px; }
+  .day span { background: #f1f5f9; padding: 3px 12px; border-radius: 12px; }
+  .msg { display: flex; gap: 12px; padding: 10px 24px; }
+  .msg .av { width: 36px; height: 36px; border-radius: 9px; flex: none; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .msg .who { font-weight: 700; color: #0f172a; }
+  .msg .when { font-size: 12px; color: #94a3b8; margin-left: 8px; font-weight: 400; }
+  .msg p { margin: 2px 0 0; color: #334155; }
+  .msg .card { margin-top: 8px; border: 1px solid #e2e8f0; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 10px 14px; background: #f8fafc; max-width: 520px; }
+  .msg .card b { display: block; color: #0f172a; }
+  .msg .card span { font-size: 13px; color: #64748b; }
+  #composer { grid-column: 2; grid-row: 3; background: #fff; border-top: 1px solid #e2e8f0; display: flex; align-items: center; padding: 0 24px; }
+  #composer div { flex: 1; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 14px; color: #94a3b8; }
+  #details { grid-row: 2 / 4; background: #f8fafc; border-left: 1px solid #e2e8f0; padding: 18px; }
+  #details h4 { margin: 0 0 10px; font-size: 14px; color: #0f172a; }
+  #details .box { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; color: #475569; }
+  #details .bar { height: 8px; border-radius: 4px; background: #e2e8f0; margin-top: 8px; overflow: hidden; }
+  #details .bar i { display: block; height: 100%; background: #10b981; }
+</style>
+</head>
+<body>
+<div id="shell">
+  <div id="topbar"><b>Team Workspace</b><span>Website relaunch &middot; sample data</span></div>
+  <div id="sidebar">
+    <h5>Channels</h5>
+    <div># announcements</div>
+    <div class="on"># website-relaunch</div>
+    <div># design-review</div>
+    <div># content</div>
+    <div># launch-checklist</div>
+    <h5 style="margin-top: 18px;">People</h5>
+    <div>Amara</div><div>Jonas</div><div>Priya</div><div>Mateo</div>
+  </div>
+  <div id="thread"></div>
+  <div id="composer"><div>Message #website-relaunch</div></div>
+  <div id="details">
+    <h4>About this channel</h4>
+    <div class="box">Planning and progress for the spring website relaunch.</div>
+    <h4>Launch progress</h4>
+    <div class="box">Pages migrated: 34 of 48<div class="bar"><i style="width: 71%;"></i></div></div>
+    <div class="box">Open review comments: 9<div class="bar"><i style="width: 40%; background: #f59e0b;"></i></div></div>
+    <h4>Next milestone</h4>
+    <div class="box">Content freeze on Thursday. Final checks on Friday morning.</div>
+  </div>
+</div>
+
+<script>
+  // The thread is built from a fixed list so every run produces the same page.
+  const people = {
+    Amara: '#6366f1', Jonas: '#0ea5e9', Priya: '#f97316', Mateo: '#10b981'
+  };
+  const lines = [
+    ['Amara', 'Morning all. Here is where the relaunch stands at the start of the week.', ['Status', '34 of 48 pages migrated, 9 review comments open']],
+    ['Jonas', 'The new navigation is in the staging build. Could everyone click through it once today?'],
+    ['Priya', 'Done. The menu works well on a phone. On a tablet the last item wraps onto a second line.'],
+    ['Jonas', 'Thanks, I can see it. I will shorten the label and tighten the spacing.'],
+    ['Mateo', 'Copy for the pricing page is ready for review. It is about 300 words shorter than the old one.'],
+    ['Amara', 'Great. Priya, can you check it against the brand voice notes before Thursday?'],
+    ['Priya', 'Yes. I will leave comments in the document by tomorrow afternoon.'],
+    ['Mateo', 'Two of the case studies still need a photo. I have asked both customers for one.', ['Waiting on', 'Photos for 2 case studies']],
+    ['Jonas', 'Performance check on staging: the home page now loads in 1.4 seconds on a mid-range phone.'],
+    ['Amara', 'That is a big improvement on 3.9 seconds. What made the difference?'],
+    ['Jonas', 'Mostly image sizes. The hero image was four times larger than it needed to be.'],
+    ['Priya', 'Accessibility pass is finished for the first twenty pages. Three colour contrast issues, all in the footer.'],
+    ['Mateo', 'I can fix the footer text colour today. It is one style rule.'],
+    ['Amara', 'Please do. Let us keep a list of anything that changes after content freeze.', ['Reminder', 'Content freeze is Thursday at 17:00']],
+    ['Jonas', 'Redirects from the old addresses are mapped. 212 rules in total, tested with a script.'],
+    ['Priya', 'I spot-checked thirty of them by hand and they all landed on the right page.'],
+    ['Mateo', 'The search page returns nothing for words with accents. Logging it now.'],
+    ['Jonas', 'Found it. The index was built without normalising text. Rebuilding takes ten minutes.'],
+    ['Mateo', 'Confirmed fixed. Searching for "cafe" and "café" now gives the same results.'],
+    ['Amara', 'Launch checklist is in the pinned document. Each of us owns a section.', ['Checklist', '18 items, 11 complete']],
+    ['Priya', 'I will take analytics consent and the cookie notice wording.'],
+    ['Jonas', 'I have hosting, redirects and the rollback plan.'],
+    ['Mateo', 'Content, images and the announcement post are mine.'],
+    ['Amara', 'Perfect. I will run the final sign-off on Friday morning and post the result here.'],
+    ['Jonas', 'One more thing: the contact form sends a confirmation email now. Please try it with your own address.'],
+    ['Priya', 'Tried it. Arrived in under a minute and the reply address is correct.'],
+    ['Mateo', 'Same here. The wording is friendly and clear.'],
+    ['Amara', 'Thank you, everyone. This is the end of the thread for today.', ['Summary', 'On track for Friday. Nothing blocking.']]
+  ];
+
+  const thread = document.getElementById('thread');
+  const days = { 0: 'Monday', 10: 'Tuesday', 20: 'Wednesday' };
+  lines.forEach(([who, text, card], i) => {
+    if (days[i]) {
+      const day = document.createElement('div');
+      day.className = 'day';
+      day.innerHTML = '<span>' + days[i] + '</span>';
+      thread.appendChild(day);
+    }
+    const hour = 9 + Math.floor((i % 10) * 0.8);
+    const minute = String((i * 7) % 60).padStart(2, '0');
+    const msg = document.createElement('div');
+    msg.className = 'msg';
+    msg.innerHTML =
+      '<div class="av" style="background:' + people[who] + '">' + who[0] + '</div>' +
+      '<div><span class="who">' + who + '</span><span class="when">' + hour + ':' + minute + '</span>' +
+      '<p>' + text + '</p>' +
+      (card ? '<div class="card"><b>' + card[0] + '</b><span>' + card[1] + '</span></div>' : '') +
+      '</div>';
+    thread.appendChild(msg);
+  });
+</script>
+</body>
+</html>

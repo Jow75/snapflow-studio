@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Coastal Trail Guide - Harbour Loop</title>
+<!--
+  Demonstration page for the Chrome Web Store screenshots. Everything here is
+  invented: the trail, the places and the figures do not describe anything real.
+  A long article with a fixed header, so a full-page capture has something to show.
+-->
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font: 16px/1.6 "Segoe UI", Arial, sans-serif; color: #1f2937; background: #f8fafc; }
+  header.top { position: fixed; top: 0; left: 0; right: 0; height: 60px; z-index: 20; background: #0f3d3e; color: #fff;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 48px; box-shadow: 0 2px 10px rgba(15, 61, 62, .35); }
+  header.top .logo { font-weight: 700; font-size: 19px; letter-spacing: .2px; display: flex; align-items: center; gap: 10px; }
+  header.top .logo i { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #fbbf24, #f97316); display: inline-block; }
+  header.top nav { display: flex; gap: 28px; font-size: 14px; opacity: .92; }
+  .hero { margin-top: 60px; height: 380px; color: #fff; padding: 84px 48px 0;
+    background:
+      radial-gradient(circle at 82% 28%, rgba(253, 224, 71, .95) 0 46px, rgba(253, 224, 71, 0) 48px),
+      linear-gradient(180deg, #38bdf8 0%, #7dd3fc 46%, #0e7490 46.2%, #155e75 100%); }
+  .hero .kicker { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; }
+  .hero h1 { font-size: 52px; line-height: 1.1; margin: 10px 0 12px; max-width: 760px; text-shadow: 0 2px 14px rgba(8, 47, 73, .35); }
+  .hero p { font-size: 19px; max-width: 620px; margin: 0; text-shadow: 0 1px 8px rgba(8, 47, 73, .4); }
+  main { max-width: 1040px; margin: 0 auto; padding: 0 24px 40px; }
+  .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: -44px; }
+  .fact { background: #fff; border-radius: 12px; padding: 18px 20px; box-shadow: 0 6px 20px rgba(15, 23, 42, .09); }
+  .fact b { display: block; font-size: 26px; color: #0f3d3e; }
+  .fact span { font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+  h2 { font-size: 30px; margin: 56px 0 6px; color: #0f172a; }
+  .lead { color: #475569; margin: 0 0 22px; max-width: 760px; }
+  .stage { display: grid; grid-template-columns: 300px 1fr; gap: 26px; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+    overflow: hidden; margin-bottom: 20px; }
+  .stage .pic { min-height: 210px; }
+  .stage .body { padding: 22px 26px 22px 0; }
+  .stage h3 { margin: 0 0 4px; font-size: 21px; color: #0f172a; }
+  .stage .meta { font-size: 13px; color: #0e7490; font-weight: 600; margin-bottom: 8px; }
+  .stage p { margin: 0; color: #475569; }
+  .p1 { background: linear-gradient(160deg, #fde68a, #f59e0b 55%, #b45309); }
+  .p2 { background: linear-gradient(160deg, #a7f3d0, #10b981 55%, #065f46); }
+  .p3 { background: linear-gradient(160deg, #bae6fd, #0ea5e9 55%, #075985); }
+  .p4 { background: linear-gradient(160deg, #ddd6fe, #8b5cf6 55%, #4c1d95); }
+  .p5 { background: linear-gradient(160deg, #fecdd3, #f43f5e 55%, #9f1239); }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 13px 18px; border-bottom: 1px solid #e2e8f0; font-size: 15px; }
+  th { background: #f1f5f9; color: #334155; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
+  tr:last-child td { border-bottom: 0; }
+  .tips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .tip { background: #fff; border: 1px solid #e2e8f0; border-left: 5px solid #0e7490; border-radius: 10px; padding: 18px 20px; }
+  .tip h4 { margin: 0 0 6px; font-size: 17px; }
+  .tip p { margin: 0; color: #475569; font-size: 15px; }
+  footer { background: #0f172a; color: #cbd5e1; margin-top: 56px; padding: 34px 48px; display: flex; justify-content: space-between; font-size: 14px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo"><i></i>Harbour Loop Trail Guide</div>
+  <nav><span>Overview</span><span>Stages</span><span>Tide table</span><span>Packing list</span></nav>
+</header>
+
+<section class="hero">
+  <div class="kicker">Sample walking guide</div>
+  <h1>Five stages around the harbour, one long weekend</h1>
+  <p>A 42 km coastal loop with cliff paths, a tidal causeway and a lighthouse you can climb. This guide covers every stage from start to finish.</p>
+</section>
+
+<main>
+  <div class="facts">
+    <div class="fact"><b>42 km</b><span>Total distance</span></div>
+    <div class="fact"><b>5</b><span>Stages</span></div>
+    <div class="fact"><b>610 m</b><span>Total climb</span></div>
+    <div class="fact"><b>3 days</b><span>Suggested time</span></div>
+  </div>
+
+  <h2>The stages</h2>
+  <p class="lead">Each stage ends at a village with somewhere to eat and a bus back to the start, so the loop can be walked in one go or one piece at a time.</p>
+
+  <div class="stage"><div class="pic p1"></div><div class="body">
+    <h3>Stage 1: Old Quay to Amber Sands</h3><div class="meta">7.5 km &middot; 2 hours &middot; Easy</div>
+    <p>The loop begins on the stone quay and follows the sea wall east. The surface is level and paved for the first three kilometres, then turns to firm sand above the high-water line. Amber Sands has a cafe open all year.</p>
+  </div></div>
+  <div class="stage"><div class="pic p2"></div><div class="body">
+    <h3>Stage 2: Amber Sands to Fernhead</h3><div class="meta">9 km &middot; 3 hours &middot; Moderate</div>
+    <p>A steady climb through coastal woodland brings you onto the first cliff path. Waymarks are green discs on short posts. Allow extra time after rain, when the middle section is muddy and the wooden steps are slippery.</p>
+  </div></div>
+  <div class="stage"><div class="pic p3"></div><div class="body">
+    <h3>Stage 3: Fernhead to Causeway Point</h3><div class="meta">8 km &middot; 2.5 hours &middot; Moderate</div>
+    <p>The tidal causeway can only be crossed for about three hours either side of low water. Check the tide table below before setting out. If the tide is wrong, the inland path adds 2 km and rejoins the route at the far end.</p>
+  </div></div>
+  <div class="stage"><div class="pic p4"></div><div class="body">
+    <h3>Stage 4: Causeway Point to Lantern Rock</h3><div class="meta">10.5 km &middot; 3.5 hours &middot; Challenging</div>
+    <p>The longest stage and the one with the most climbing. The reward is the lighthouse at Lantern Rock, where 112 steps lead to a gallery with a view of the whole loop. The last bus leaves the car park at half past five.</p>
+  </div></div>
+  <div class="stage"><div class="pic p5"></div><div class="body">
+    <h3>Stage 5: Lantern Rock to Old Quay</h3><div class="meta">7 km &middot; 2 hours &middot; Easy</div>
+    <p>A gentle descent through heathland and back along the harbour edge. Seals are often seen from the last headland in the early morning. The route ends where it began, beside the harbour office.</p>
+  </div></div>
+
+  <h2>Tide table</h2>
+  <p class="lead">Sample low-water times for the causeway on Stage 3. These figures are illustrative.</p>
+  <table>
+    <tr><th>Day</th><th>Morning low water</th><th>Evening low water</th><th>Safe crossing window</th></tr>
+    <tr><td>Friday</td><td>06:42</td><td>19:05</td><td>03:45 to 09:40</td></tr>
+    <tr><td>Saturday</td><td>07:31</td><td>19:54</td><td>04:30 to 10:30</td></tr>
+    <tr><td>Sunday</td><td>08:19</td><td>20:41</td><td>05:20 to 11:20</td></tr>
+    <tr><td>Monday</td><td>09:06</td><td>21:27</td><td>06:05 to 12:05</td></tr>
+  </table>
+
+  <h2>Before you go</h2>
+  <p class="lead">Three things that make the walk easier.</p>
+  <div class="tips">
+    <div class="tip"><h4>Carry water</h4><p>There are no taps between Fernhead and Lantern Rock, a stretch of more than 18 km.</p></div>
+    <div class="tip"><h4>Wear proper boots</h4><p>Stages 2 and 4 cross rough ground. Trainers are fine for stages 1 and 5 only.</p></div>
+    <div class="tip"><h4>Tell someone</h4><p>Mobile signal is patchy on the cliffs. Leave your route and return time with a friend.</p></div>
+  </div>
+</main>
+
+<footer><span>Harbour Loop Trail Guide &middot; sample content for demonstration</span><span>End of page</span></footer>
+</body>
+</html>

@@ -22,5 +22,5 @@
 
 [[redirects]]
   from = "/support"
-  to = "/#support"
-  status = 302
+  to = "/support.html"
+  status = 200

@@ -1,0 +1,14 @@
+{
+  "name": "snapflow-e2e",
+  "private": true,
+  "description": "Real-browser verification for Snap Flow Studio (drives the unpacked extension in Chrome).",
+  "scripts": {
+    "test": "node run-all.js"
+  },
+  "devDependencies": {
+    "jpeg-js": "^0.4.4",
+    "pdfjs-dist": "^4.10.38",
+    "pngjs": "^7.0.0",
+    "puppeteer-core": "^24.20.0"
+  }
+}

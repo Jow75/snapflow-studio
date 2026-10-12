@@ -1,6 +1,7 @@
 /**
  * SnapFlow - Automated Unit Test Suite
- * Validates math, slicing logic, PDF page calculations, destructive redaction, and MV3 security policies.
+ * Validates the public engine surface, PDF page sizes, MV3 security policy and packaged assets.
+ * Stitching mathematics is covered by engine-tests.js and export layout by export-tests.js.
  */
 
 const path = require('path');
@@ -34,67 +35,19 @@ console.log('   SNAPFLOW AUTOMATED TEST SUITE');
 console.log('==================================================\n');
 
 console.log('1. SCROLL STITCHER & COORDINATE MATHEMATICS');
-it('Should calculate exact vertical slices for exact page multiples', () => {
-  const plan = ScrollStitcher.planSlices({
-    scrollWidth: 1440,
-    scrollHeight: 3000,
-    viewportWidth: 1440,
-    viewportHeight: 1000,
-    dpr: 1
-  });
-  assert.strictEqual(plan.slices.length, 3);
-  assert.strictEqual(plan.totalHeight, 3000);
-  assert.strictEqual(plan.slices[0].scrollY, 0);
-  assert.strictEqual(plan.slices[1].scrollY, 1000);
-  assert.strictEqual(plan.slices[2].scrollY, 2000);
-  assert.strictEqual(plan.requiresTiling, false);
+it('Should expose the frame compositor and its coordinate helpers', () => {
+  for (const fn of ['newRows', 'planOutput', 'mapPaint', 'composeFrames', 'cropToCanvas', 'resolveScale']) {
+    assert.strictEqual(typeof ScrollStitcher[fn], 'function', `ScrollStitcher.${fn}`);
+  }
+  assert.strictEqual(typeof ScrollStitcher.IntervalSet, 'function');
 });
 
-it('Should accurately clip and offset remainder bottom slice', () => {
-  const plan = ScrollStitcher.planSlices({
-    scrollWidth: 1200,
-    scrollHeight: 2450,
-    viewportWidth: 1200,
-    viewportHeight: 1000,
-    dpr: 1
-  });
-  assert.strictEqual(plan.slices.length, 3);
-  const remainderSlice = plan.slices[2];
-  assert.strictEqual(remainderSlice.isRemainder, true);
-  assert.strictEqual(remainderSlice.scrollY, 1450); // 2450 - 1000
-  assert.strictEqual(remainderSlice.sourceY, 550);  // 1000 - 450
-  assert.strictEqual(remainderSlice.sourceHeight, 450);
-  assert.strictEqual(remainderSlice.destY, 2000);
-  assert.strictEqual(remainderSlice.destHeight, 450);
-  assert.strictEqual(plan.totalHeight, 2450);
+it('Should keep stitched canvases inside Chromium limits (32,767 px per side, 268,435,456 px area)', () => {
+  assert.ok(ScrollStitcher.MAX_CANVAS_DIMENSION <= 32767);
+  assert.ok(ScrollStitcher.MAX_CANVAS_AREA <= 268435456);
 });
 
-it('Should scale dimensions and coordinates proportionally on High-DPI (DPR 2.0)', () => {
-  const plan = ScrollStitcher.planSlices({
-    scrollWidth: 1000,
-    scrollHeight: 2000,
-    viewportWidth: 1000,
-    viewportHeight: 1000,
-    dpr: 2
-  });
-  assert.strictEqual(plan.totalWidth, 2000);
-  assert.strictEqual(plan.totalHeight, 4000);
-  assert.strictEqual(plan.slices[0].destHeight, 2000);
-  assert.strictEqual(plan.slices[1].destHeight, 2000);
-});
-
-it('Should flag requiresTiling when page height exceeds 30,000px', () => {
-  const plan = ScrollStitcher.planSlices({
-    scrollWidth: 1920,
-    scrollHeight: 32000,
-    viewportWidth: 1920,
-    viewportHeight: 1000,
-    dpr: 1
-  });
-  assert.strictEqual(plan.requiresTiling, true);
-});
-
-console.log('\n2. SMART-SPLIT PDF ENGINE');
+console.log('\n2. PDF ENGINE');
 it('Should provide standard A4 and Letter page dimensions in points', () => {
   assert.strictEqual(SmartPdfExporter.PAGE_SIZES.a4.width, 595.28);
   assert.strictEqual(SmartPdfExporter.PAGE_SIZES.a4.height, 841.89);
@@ -106,7 +59,8 @@ console.log('\n3. SECURITY & MANIFEST V3 COMPLIANCE');
 it('Should declare Manifest V3 with minimal least-privilege permissions', () => {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   assert.strictEqual(manifest.manifest_version, 3);
-  assert.deepStrictEqual(manifest.permissions, ['activeTab', 'scripting', 'downloads', 'storage']);
+  assert.deepStrictEqual(manifest.permissions, ['activeTab', 'scripting', 'storage']);
+  assert.strictEqual(manifest.host_permissions, undefined);
   assert.strictEqual(manifest.permissions.includes('<all_urls>'), false);
   assert.strictEqual(manifest.permissions.includes('*://*/*'), false);
 });
@@ -125,6 +79,31 @@ it('Should verify all declared extension icons exist on disk', () => {
     const fullIconPath = path.resolve(__dirname, '..', iconRel);
     assert.ok(fs.existsSync(fullIconPath), `Icon ${iconRel} must exist`);
   }
+});
+
+it('Should ship every script that the service worker, Studio and popup load', () => {
+  const root = path.resolve(__dirname, '..');
+  const worker = fs.readFileSync(path.join(root, 'background/service-worker.js'), 'utf8');
+
+  for (const match of worker.matchAll(/importScripts\('([^']+)'\)/g)) {
+    assert.ok(fs.existsSync(path.resolve(root, 'background', match[1])), `importScripts ${match[1]}`);
+  }
+  const injected = [...worker.matchAll(/'(engine\/[a-z-]+\.js)'/g)].map((m) => m[1]);
+  assert.ok(injected.includes('engine/content.js') && injected.includes('engine/scroll-stitcher.js'));
+  for (const file of injected) assert.ok(fs.existsSync(path.join(root, file)), `injected ${file}`);
+
+  for (const dir of ['studio', 'popup']) {
+    const page = dir === 'studio' ? 'viewer.html' : 'popup.html';
+    const html = fs.readFileSync(path.join(root, dir, page), 'utf8');
+    for (const match of html.matchAll(/<script src="([^"]+)"/g)) {
+      assert.ok(fs.existsSync(path.resolve(root, dir, match[1])), `${dir} script ${match[1]}`);
+    }
+  }
+});
+
+it('Should not expose extension files to web pages (no web_accessible_resources)', () => {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  assert.strictEqual(manifest.web_accessible_resources, undefined);
 });
 
 console.log('\n==================================================');

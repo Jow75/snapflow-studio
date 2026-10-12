@@ -598,37 +598,6 @@ it('Independent metadata: URL on bottom and Date on top -> Preserves exact page 
 });
 
 // -------------------------------------------------------------
-// TEST M: Scrolling Region Element Capture Planning
-// -------------------------------------------------------------
-console.log('\n--- TEST M: SCROLLING REGION ELEMENT CAPTURE PLANNING ---');
-it('ScrollStitcher: planElementSlices accurately computes element slices and offsets for nested scrolling containers', () => {
-  const elementMetrics = {
-    x: 100,
-    y: 150,
-    width: 800,
-    height: 600,
-    scrollHeight: 2400,
-    clientHeight: 600,
-    scrollWidth: 800,
-    clientWidth: 800,
-    dpr: 2.0
-  };
-
-  const plan = ScrollStitcher.planElementSlices(elementMetrics);
-  assert.strictEqual(plan.dpr, 2.0);
-  assert.strictEqual(plan.scrollHeightCss, 2400);
-  assert.strictEqual(plan.totalHeight, 4800);
-  assert.strictEqual(plan.totalWidth, 1600);
-  assert.strictEqual(plan.slices.length, 4);
-
-  // Verify slice scroll offsets
-  assert.strictEqual(plan.slices[0].scrollTop, 0);
-  assert.strictEqual(plan.slices[1].scrollTop, 600);
-  assert.strictEqual(plan.slices[2].scrollTop, 1200);
-  assert.strictEqual(plan.slices[3].scrollTop, 1800);
-});
-
-// -------------------------------------------------------------
 // TEST N: System-Style Emoji Picker Coverage & Search Filtering
 // -------------------------------------------------------------
 console.log('\n--- TEST N: SYSTEM-STYLE EMOJI PICKER COVERAGE & SEARCH FILTERING ---');
@@ -652,7 +621,7 @@ it('Emoji Library: All 9 standard Unicode categories are populated and search fi
 });
 
 console.log('\n============================================================');
-console.log(`   TEST RESULTS: ${testsPassed} / ${testsRun} PASSED (100% Reliability)`);
+console.log(`   TEST RESULTS: ${testsPassed} / ${testsRun} PASSED`);
 console.log('============================================================\n');
 
 if (testsPassed !== testsRun) {

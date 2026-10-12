@@ -6,3 +6,9 @@ node_modules/
 
 # Local Netlify folder
 .netlify
+
+# Real-browser test artifacts
+e2e/output/
+
+# Built packages (reproducible: node build-package.js)
+dist/
