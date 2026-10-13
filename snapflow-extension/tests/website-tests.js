@@ -159,6 +159,14 @@ it('Support Page: Exists with the support email and links to the privacy policy'
   assert.ok(netlifyToml.includes('to = "/support.html"'), '/support must resolve to the support page');
 });
 
+it('Google Search Console verification file is present and holds its token', () => {
+  // Google says to keep this file even after verification succeeds, so it is guarded here.
+  const token = 'googleaaf32d87514e216c.html';
+  const file = path.join(websiteDir, token);
+  assert.ok(fs.existsSync(file), `${token} must stay in the website root for Search Console`);
+  assert.strictEqual(fs.readFileSync(file, 'utf8').trim(), `google-site-verification: ${token}`);
+});
+
 it('Website Links: Every local link and asset on every page exists', () => {
   for (const page of ['index.html', 'privacy.html', 'support.html']) {
     const html = fs.readFileSync(path.join(websiteDir, page), 'utf8');

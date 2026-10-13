@@ -186,9 +186,11 @@ All of these files are in `store-submission/assets/`.
 
 **Dashboard field:** Marquee promo tile
 
-**Required or optional:** Optional. 1400 × 560 pixels.
+**Required or optional:** Optional. 1400 × 560 pixels, JPEG or 24-bit PNG with no alpha channel.
 
-**Value:** Leave empty. It is used only if Google chooses to feature the extension, and it can be added later.
+**File to upload:** `marquee-promo-tile-1400x560.png`
+
+**Notes:** Artwork, not a screenshot: the icon, the name and the four capture modes on a dark background. It is used only if Google chooses to feature the extension, so there is no harm in providing it. You may also leave it empty and add it later.
 
 **Dashboard field:** Global promo video (YouTube link)
 
@@ -202,9 +204,9 @@ All of these files are in `store-submission/assets/`.
 
 **Required or optional:** Optional.
 
-**Value to select:** `None`
+**Value to select:** the website, once it appears in the list; otherwise `None` for now.
 
-**Notes:** The list only offers sites you have verified in Google Search Console. It can be set later if you verify the website.
+**Notes:** The list only offers sites you have verified as yours in Google Search Console. Verification for `https://snapflow-studio-app.netlify.app/` is being set up with Search Console's HTML-file method: the file `googleaaf32d87514e216c.html` is in the website and is live at the site root, so you can press **Verify** in Search Console. After it verifies, this dropdown will offer the site and choosing it shows your verified publisher status under the listing title. Leave the file in place; Search Console re-checks it. If you have not verified yet, leave this field as `None` and set it later.
 
 **Dashboard field:** Homepage URL
 
@@ -377,20 +379,17 @@ https://snapflow-studio-app.netlify.app/privacy.html
 
 **Dashboard field:** Test instructions (username, password and additional instructions)
 
-**Required or optional:** Optional. Leave the username and password empty: the extension has no sign-in.
+**Required or optional:** Optional. Leave the username and password empty: the extension has no sign-in. The additional instructions box holds at most 500 characters, so the value below is kept short; the permission detail that used to be here now lives in the permission justifications on the Privacy tab.
 
 **Value to paste into the additional instructions box:**
 
 ```text
-No account or sign-in is needed.
+No account needed. Use any ordinary web page (not chrome:// pages or the Chrome Web Store).
 
-1. Open any ordinary web page (not a chrome:// page and not the Chrome Web Store).
-2. Click the Snap Flow Studio toolbar button. The popup lists four capture modes.
-3. Click "Full Page". The page is scrolled once and the capture opens in a new tab, the Studio editor.
-4. In the Studio, draw with the tools on the left, then use PNG, JPEG, WebP or Export PDF at the top right to download the result.
-5. For "Scrolling Region", open a page that has a panel with its own scrollbar, choose the mode, click the panel, then choose "Capture automatically".
-
-Permission model: the extension requests activeTab, scripting and storage, and no host permissions. It can access a page only after its toolbar button or one of its shortcuts (Alt+Shift+S, Alt+Shift+V) is used on that page. Screenshots are taken with chrome.tabs.captureVisibleTab and stored in the extension's own IndexedDB database on the device, where the 10 most recent are kept. The extension makes no network requests and runs no remote code.
+1. Click the toolbar button to open the popup (four capture modes).
+2. Click "Full Page": the page scrolls once and opens in the Studio editor.
+3. Annotate with the left-hand tools, then download with PNG, JPEG, WebP or Export PDF (top right).
+4. "Scrolling Region": open a page with its own scrollable panel, pick the mode, click the panel, then "Capture automatically".
 ```
 
 ## Step 6: Submit
@@ -420,11 +419,14 @@ The screenshots come from the upload file itself. `e2e/store-screenshots.js` unp
 - Screenshot 1 is a composition of two real screenshots. Chrome draws the toolbar popup in its own small window, which a screenshot of the tab does not include, so the popup's screenshot was placed, at its real size, over the screenshot of the page it had been opened on. A shadow and rounded corners were added around the popup. Nothing inside either screenshot was changed.
 - Each file was read back from disk and checked: 1280 × 800 pixels, 8 bits per channel, RGB with no alpha channel. Each was also opened and looked at.
 
+The two promo tiles are artwork rather than screenshots. They are drawn from the extension's own icon and name by `e2e/promo-tiles.js`, rendered in Chrome at 440 × 280 and 1400 × 560, and saved and checked the same way (24-bit PNG, no alpha).
+
 To make them again after a change to the extension:
 
 ```text
 node build-package.js
 node e2e/store-screenshots.js
+node e2e/promo-tiles.js
 ```
 
 ## What has not been verified

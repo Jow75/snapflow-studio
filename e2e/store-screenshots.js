@@ -15,8 +15,8 @@
  * One image is a composition: Chrome draws the toolbar popup in its own small
  * window, which a page screenshot does not include. 01-product-overview.png is the
  * popup's real screenshot placed, unscaled, over the real screenshot of the page it
- * was opened on. The other four are single unedited screenshots. The promo tile is
- * artwork (icon and name), not a screenshot.
+ * was opened on. The other four are single unedited screenshots. The promo tiles
+ * are artwork (icon and name) and are made separately by promo-tiles.js.
  */
 
 const fs = require('fs');
@@ -250,23 +250,6 @@ const dataUrl = (buffer) => 'data:image/png;base64,' + Buffer.from(buffer).toStr
     if (exported.width !== fullDims.width || exported.height !== fullDims.height) throw new Error('The PNG export does not match the capture size.');
 
     // -----------------------------------------------------------------------
-    // Small promo tile (artwork: the extension's own icon and name)
-    // -----------------------------------------------------------------------
-    console.log('\nSmall promo tile');
-    const icon = fs.readFileSync(path.join(store.dir, 'icons', 'icon128.png'));
-    const tile = await ctx.browser.newPage();
-    await tile.setViewport({ width: 440, height: 280, deviceScaleFactor: 1 });
-    await tile.setContent(`<!DOCTYPE html><html><body style="margin:0;width:440px;height:280px;overflow:hidden;
-        background:radial-gradient(circle at 78% 18%,#4338ca 0%,rgba(67,56,202,0) 55%),linear-gradient(140deg,#0b1220 0%,#131c33 60%,#1e1b4b 100%);
-        font-family:'Segoe UI',Arial,sans-serif;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
-      <img src="${dataUrl(icon)}" style="width:84px;height:84px;margin-bottom:14px;border-radius:18px">
-      <div style="font-size:33px;font-weight:700;letter-spacing:-.01em">Snap Flow Studio</div>
-      <div style="font-size:16px;color:#c7d2fe;margin-top:8px">Full page screenshots and editor</div>
-    </body></html>`, { waitUntil: 'load' });
-    savePng('small-promo-tile-440x280.png', await tile.screenshot(), 440, 280);
-    await tile.close();
-
-    // -----------------------------------------------------------------------
     // Validation: re-read every file from disk
     // -----------------------------------------------------------------------
     console.log('\nValidation (read back from disk)');
@@ -275,8 +258,7 @@ const dataUrl = (buffer) => 'data:image/png;base64,' + Buffer.from(buffer).toStr
       '02-full-page-capture.png': [WIDTH, HEIGHT],
       '03-scrolling-region.png': [WIDTH, HEIGHT],
       '04-studio-editor.png': [WIDTH, HEIGHT],
-      '05-export-options.png': [WIDTH, HEIGHT],
-      'small-promo-tile-440x280.png': [440, 280]
+      '05-export-options.png': [WIDTH, HEIGHT]
     };
     for (const [name, [w, hgt]] of Object.entries(expected)) {
       const file = fs.readFileSync(path.join(ASSETS, name));

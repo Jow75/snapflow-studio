@@ -56,7 +56,7 @@ node build-package.js --next-submission
 
 ## Store submission
 
-Everything needed to fill in the Chrome Web Store Developer Dashboard is in [store-submission/CHROME-WEB-STORE-SUBMISSION-KIT.md](store-submission/CHROME-WEB-STORE-SUBMISSION-KIT.md). The screenshots there are regenerated from the built archive with `node e2e/store-screenshots.js`.
+Everything needed to fill in the Chrome Web Store Developer Dashboard is in [store-submission/CHROME-WEB-STORE-SUBMISSION-KIT.md](store-submission/CHROME-WEB-STORE-SUBMISSION-KIT.md). The screenshots there are regenerated from the built archive with `node e2e/store-screenshots.js`, and the two promo tiles with `node e2e/promo-tiles.js`.
 
 ## Website
 
